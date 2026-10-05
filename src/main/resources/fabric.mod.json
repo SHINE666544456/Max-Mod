@@ -1,0 +1,26 @@
+{
+	"schemaVersion": 1,
+	"id": "emote_wheel",
+	"version": "${version}",
+	"name": "Emote Wheel (+ Maid & Hinata Armor)",
+	"description": "Fortnite-style emote wheel with 270+ emotes (dances, poses, anime moves, cat & maid), a live preview, a customizable wheel, favorites and rebindable keys. Also includes the Hinata and maid armor outfits (rename diamond/netherite armor). Install on the server too so other players can see your emotes.",
+	"license": "All-Rights-Reserved",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.example.emotewheel.EmoteWheelMod"
+		],
+		"client": [
+			"com.example.emotewheel.client.EmoteWheelClient"
+		]
+	},
+	"mixins": [
+		"emote_wheel.client.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
