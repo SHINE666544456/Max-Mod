@@ -46,7 +46,9 @@ public final class CloneManager {
             }
         }
 
-        for (AbstractClientPlayer p : level.players()) {
+        // Copy the list: spawning a clone adds it to level.players() while we're still looping (that crashed the game).
+        for (AbstractClientPlayer p : new ArrayList<>(level.players())) {
+            if (p instanceof CloneEntity) continue;
             if (CLONES.containsKey(p.getUUID()) || !wants(p) || !p.isAlive()) continue;
             CLONES.put(p.getUUID(), spawn(level, p));
         }
