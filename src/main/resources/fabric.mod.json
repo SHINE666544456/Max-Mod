@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "emote_wheel",
 	"version": "${version}",
-	"name": "Emote Wheel (+ Armor) V2.0.2",
+	"name": "Emote Wheel (+ Maid & Hinata Armor)",
 	"description": "Fortnite-style emote wheel with 310+ emotes (dances, poses, anime moves, cat & maid), particle FX, a live preview, a customizable wheel, favorites and rebindable keys. Also includes the Hinata and maid armor outfits (rename diamond/netherite armor). Install on the server too so other players can see your emotes.",
 	"license": "All-Rights-Reserved",
 	"environment": "*",

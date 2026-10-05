@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.particles.PowerParticleOption;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -89,7 +90,7 @@ public final class EmoteFx {
                 for (int i = 0; i < n; i++) {
                     double dx = (r.nextDouble() - 0.5) * 0.9, dz = (r.nextDouble() - 0.5) * 0.9;
                     level.addParticle(ParticleTypes.WITCH, x + dx, y + 0.5 + r.nextDouble() * 1.4, z + dz, 0, 0.05, 0);
-                    level.addParticle(ParticleTypes.DRAGON_BREATH, x + dx, y + 1.0, z + dz, dx * 0.05, 0.02, dz * 0.05);
+                    level.addParticle(PowerParticleOption.create(ParticleTypes.DRAGON_BREATH, 1f), x + dx, y + 1.0, z + dz, dx * 0.05, 0.02, dz * 0.05);
                     if (burst) level.addParticle(ParticleTypes.PORTAL, x + dx, y + 1.0, z + dz, dx, 0.2, dz);
                 }
             }
