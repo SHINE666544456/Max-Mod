@@ -18,13 +18,19 @@ final class Flags {
         "violin", "trumpet", "dj", "kakashi_reading", "kakashi_salute", "byakugan", "brooding_glare", "believe_it",
         "hand_seals", "cross_seal", "bye_bye", "hug", "thumbs_down", "scheming", "wipe_sweat", "mic_drop", "evil_genius",
         "heart_salute", "cat_ears_pose", "see_you_master", "tea_pour", "maid_polish", "cat_scratch", "cat_groom",
-        "air_guitar", "air_drums", "disco", "night_fever", "floss", "dab", "salsa", "hula");
+        "air_guitar", "air_drums", "disco", "night_fever", "floss", "dab", "salsa", "hula",
+        "sharingan", "amaterasu", "za_warudo", "star_finger", "death_note", "spirit_gun", "zoltraak",
+        "plus_ultra", "full_cowling", "ice_and_fire", "boogie_woogie", "ten_shadows", "ora_ora", "muda_muda",
+        "party_popper", "sparkler", "confetti", "fireworks_show", "three_swords", "explosion_hero", "chainsaw_rev",
+        "aura_monster", "i_love_emilia", "witch_scent", "barusu", "betty_covenant", "infinity", "six_eyes",
+        "cursed_speech", "sukuna_laugh", "return_by_death");
 
     /** Full-body emotes that keep playing while you move. */
     private static final Set<String> MOVE = Set.of(
         "naruto_run", "gojo_float", "gojo_domain", "lapse_blue", "reversal_red", "zombie", "moonwalk", "running_man",
         "run", "sprint", "march", "sneak", "runway_walk", "penguin", "duck_walk", "crab_walk", "ghost", "superman",
-        "neko_run", "cat_stalk", "sage_mode", "leaf_hurricane");
+        "neko_run", "cat_stalk", "sage_mode", "leaf_hurricane", "gear_second", "thunderclap", "odm_gear",
+        "flying_raijin", "susanoo", "one_hundred", "rasenshuriken", "hinokami", "water_wheel", "aura_farm", "mahoraga");
 
     static void apply() {
         for (Emote e : Emotes.all()) {

@@ -28,6 +28,7 @@ public final class Emote {
     private String state;       // persistent toggle this emote flips (e.g. "cat_girl"), or null
     private int stateDelay;     // ticks after starting before the toggle happens
     private String only;        // account name this emote is restricted to, or null for everyone
+    private Fx fx = Fx.NONE;
 
     Emote(String id, String name, Category category, String icon, float duration, PoseFn fn) {
         this.id = id; this.name = name; this.category = category;
@@ -48,9 +49,11 @@ public final class Emote {
     public String state() { return state; }
     public int stateDelay() { return stateDelay; }
     public String only() { return only; }
+    public Fx fx() { return fx; }
 
     // builder-style setters, used while registering
     public Emote flag(int f) { flags |= f; return this; }
     public Emote state(String s, int delayTicks) { this.state = s; this.stateDelay = delayTicks; this.flags |= NOCANCEL; return this; }
     public Emote only(String accountName) { this.only = accountName; return this; }
+    public Emote fx(Fx f) { this.fx = f; return this; }
 }

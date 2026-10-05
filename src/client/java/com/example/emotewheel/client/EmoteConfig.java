@@ -32,6 +32,10 @@ public final class EmoteConfig {
     /** Cat ears + tail on yourself: 0 = never, 1 = during cat emotes, 2 = always (only you see 'always'). */
     public int catMode = 1;
     public int page = 0;
+    /** Last library page in the full emote menu. */
+    public int listPage = 0;
+    /** Last filter tab in the full emote menu (0 = all, 1 = favorites, 2+ = category). */
+    public int filterIdx = 0;
 
     private static final String[] DEFAULTS = {
         // page 1: greetings & reactions
@@ -71,6 +75,8 @@ public final class EmoteConfig {
         }
         c.favorites.removeIf(id -> Emotes.byId(id) == null);
         c.page = Math.floorMod(c.page, PAGES);
+        if (c.filterIdx < 0) c.filterIdx = 0;
+        if (c.listPage < 0) c.listPage = 0;
         return c;
     }
 

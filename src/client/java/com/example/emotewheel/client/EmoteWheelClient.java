@@ -42,6 +42,7 @@ public class EmoteWheelClient implements ClientModInitializer {
 
     private static void tick(Minecraft mc) {
         EmoteClient.tick(mc);
+        EmoteFx.tick(mc);
         CloneManager.tick(mc);
         if (mc.player == null) return;
 

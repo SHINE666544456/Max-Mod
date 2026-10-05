@@ -54,6 +54,10 @@ public class EmoteMenuScreen extends Screen {
         this.parent = parent;
         this.selSlot = slot;
         this.page = EmoteConfig.get().page;
+        this.listPage = Math.max(0, EmoteConfig.get().listPage);
+        this.filterIdx = Math.max(0, EmoteConfig.get().filterIdx);
+        int filterMax = 2 + Category.values().length;
+        if (this.filterIdx >= filterMax) this.filterIdx = 0;
     }
 
     @Override
@@ -72,12 +76,13 @@ public class EmoteMenuScreen extends Screen {
         search = new EditBox(font, lx, 22, leftW - 98, 18, Component.literal("Search"));
         search.setHint(Component.literal("Search emotes..."));
         search.setValue(query);
-        search.setResponder(s -> { query = s.toLowerCase(Locale.ROOT); listPage = 0; refresh(); });
+        search.setResponder(s -> { query = s.toLowerCase(Locale.ROOT); listPage = 0; persistMenuPage(); refresh(); });
         addRenderableWidget(search);
 
         filterBtn = Button.builder(Component.literal("All"), b -> {
             filterIdx = (filterIdx + 1) % (2 + Category.values().length);
             listPage = 0;
+            persistMenuPage();
             refresh();
         }).bounds(lx + leftW - 94, 21, 94, 20).build();
         addRenderableWidget(filterBtn);
@@ -99,9 +104,9 @@ public class EmoteMenuScreen extends Screen {
         }
 
         navY = top + rows * 22 + 4;
-        prevBtn = Button.builder(Component.literal("<"), b -> { listPage--; refresh(); })
+        prevBtn = Button.builder(Component.literal("<"), b -> { listPage--; persistMenuPage(); refresh(); })
             .bounds(lx, navY, 24, 18).build();
-        nextBtn = Button.builder(Component.literal(">"), b -> { listPage++; refresh(); })
+        nextBtn = Button.builder(Component.literal(">"), b -> { listPage++; persistMenuPage(); refresh(); })
             .bounds(lx + leftW - 24, navY, 24, 18).build();
         addRenderableWidget(prevBtn);
         addRenderableWidget(nextBtn);
@@ -163,6 +168,13 @@ public class EmoteMenuScreen extends Screen {
     }
 
     // ---------------------------------------------------------------- logic
+
+    private void persistMenuPage() {
+        EmoteConfig cfg = EmoteConfig.get();
+        cfg.listPage = Math.max(0, listPage);
+        cfg.filterIdx = Math.max(0, filterIdx);
+        cfg.save();
+    }
 
     private List<Emote> filtered() {
         EmoteConfig cfg = EmoteConfig.get();
@@ -313,6 +325,7 @@ public class EmoteMenuScreen extends Screen {
 
     @Override
     public void onClose() {
+        persistMenuPage();
         EmoteConfig.get().save();
         EmoteClient.setPreview(null);
         minecraft.setScreen(parent);

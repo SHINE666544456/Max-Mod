@@ -25,6 +25,7 @@ public final class Emotes {
         CatMaidEmotes.register();
         AnimeEmotes.register();
         Flags.apply();
+        FxTable.apply();
     }
 
     static Emote add(String id, String name, Category cat, String icon, float duration, Emote.PoseFn fn) {

@@ -7,6 +7,29 @@ final class SillyEmotes {
     private SillyEmotes() {}
 
     static void register() {
+        Emotes.add("party_popper", "Party Popper", SILLY, "firework_rocket", 2.4f, (p, t) -> {
+            float yank = seq(t, 0f, 0f, 0.45f, 1f, 0.7f, 1f, 0.85f, 0f, 2.4f, 0f);
+            float burst = seq(t, 0f, 0f, 0.7f, 0f, 0.85f, 1f, 1.6f, 1f, 2.4f, 0f);
+            p.rax = lerp(0.15f, 0.9f, yank) + lerp(0f, -1.7f, burst);
+            p.ray = 0.15f * (1 - burst);
+            p.lean = lerp(0.05f, -0.15f, yank) + 0.35f * burst;
+            p.leftArm(0.2f, 0, -0.35f);
+            p.headX = -0.15f * burst; p.rootY = -abs(sin(t * 18)) * 0.8f * burst;
+            p.legs(0, 0, 0.1f * burst);
+        });
+        Emotes.add("confetti", "Confetti Burst", SILLY, "firework_star", 0, (p, t) -> {
+            p.arms(-2.6f, 0, -0.35f); p.headX = -0.25f; p.lean = -0.12f;
+            p.rootY = -abs(sin(t * 6)) * 1.2f; p.bodyY = sin(t * 8) * 0.15f;
+        });
+        Emotes.add("sparkler", "Sparkler", SILLY, "blaze_rod", 0, (p, t) -> {
+            p.rax = -2.5f; p.raz = -0.25f + sin(t * 22) * 0.12f;
+            p.leftArm(0.1f, 0, -0.15f); p.headY = -0.15f;
+            p.rootY = sin(t * 4) * 0.3f;
+        });
+        Emotes.add("fireworks_show", "Fireworks Show", SILLY, "firework_rocket", 0, (p, t) -> {
+            p.arms(-2.85f, 0, -0.2f); p.headX = -0.45f; p.lean = -0.2f;
+            p.rootY = -abs(sin(t * 3)) * 0.8f; p.legs(0, 0, 0.1f);
+        });
         Emotes.add("penguin", "Penguin Waddle", SILLY, "packed_ice", 0, (p, t) -> {
             float s = sin(t * 8);
             p.arms(0, 0, 0.9f + 0.1f * sin(t * 16)); p.roll = s * 0.14f; p.rootX = s * 1.5f;
