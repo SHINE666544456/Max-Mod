@@ -9,7 +9,7 @@ the old emote-wheel jar, and install just this one (plus Fabric API).
 - A **Fortnite-style radial wheel**, 3 pages x 8 slots, with a gold rim, glowing hover, page tabs, slot numbers, favorites and a live centre preview. Fully customizable, with search. The last wheel page **and** the last library page/filter in the emote menu are saved.
 - A **Fortnite-style radial wheel**, 3 pages x 8 slots, fully customizable, with favorites and search.
 - A **live preview** of your own character in the menu: hover any emote to watch it.
-- **Cat ears + tail** that appear during cat/maid emotes (or always, if you want - see Options).
+- **Cat ears + tail + head pet** use their **own fur atlas** (not your hair). In Settings, paste hex for **ear outer**, **ear inner** and **tail**, then Save. The tail auto-mixes darker and lighter neighbours. The pet lays down and sleeps (closed eyes) on a loop.
 - **Walk-while-emoting**: upper-body emotes (waves, dances, salutes...) and run-style emotes (Ninja Run, Gojo's float...) keep playing while you move.
 - **Armor outfits** (the old armor mod): rename armor in an anvil.
 - **Shadow Clone Jutsu** (only for the account named `SSK1P`) and **Sexy Jutsu** (cat-girl skin swap).

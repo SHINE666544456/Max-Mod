@@ -14,6 +14,7 @@ import com.example.emotewheel.client.EmoteClient;
 import com.example.emotewheel.client.EmoteConfig;
 import com.example.emotewheel.client.EmoteProps;
 import com.example.emotewheel.client.EmoteStateHolder;
+import com.example.emotewheel.client.LookParts;
 import com.example.emotewheel.client.MaidUtil;
 import com.example.emotewheel.emote.Emote;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -21,6 +22,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.state.CameraRenderState;
@@ -42,6 +45,8 @@ import net.minecraft.world.level.block.state.BlockState;
 @Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin {
 
+    @org.spongepowered.asm.mixin.Shadow public abstract EntityModel<?> getModel();
+
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V",
             at = @At("RETURN"))
     private void emotes$extract(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
@@ -49,11 +54,13 @@ public abstract class LivingEntityRendererMixin {
         holder.emotes$set(null, 0f);
         holder.emotes$setCat(0, 0);
         holder.emotes$setExtras(null, 0);
+        holder.emotes$setSelf(false);
         if (!(entity instanceof AbstractClientPlayer player)) return;
 
         Minecraft mc = Minecraft.getInstance();
         EmoteConfig cfg = EmoteConfig.get();
         boolean self = player == mc.player;
+        holder.emotes$setSelf(self);
         AbstractClientPlayer who = player instanceof CloneEntity c ? c.owner() : player; // clones copy their owner
 
         Emote emote = null;
@@ -115,6 +122,11 @@ public abstract class LivingEntityRendererMixin {
         if (!(state instanceof EmoteStateHolder h)) return;
         Emote e = h.emotes$getEmote();
         if (e != null && EmoteProps.has(e)) EmoteProps.submit(e, h.emotes$getTime(), state.bodyRot, poseStack, collector);
+        EntityModel<?> model = getModel();
+        if (model instanceof PlayerModel<?> pm && (h.emotes$earStyle() > 0 || h.emotes$tailStyle() > 0 || h.emotes$pet() > 0)) {
+            LookParts.submit(pm, state, poseStack, collector, LookParts.textureFor(h.emotes$isSelf()),
+                h.emotes$earStyle(), h.emotes$tailStyle(), h.emotes$pet());
+        }
     }
 
     /** Stealth: no nametag floating over the owner (this is what gives the real one away among shadow clones). */

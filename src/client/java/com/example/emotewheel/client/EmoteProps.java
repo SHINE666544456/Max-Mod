@@ -78,17 +78,23 @@ public final class EmoteProps {
                 return new Prop[] { new Prop(lerp(0.45f, 0.9f, thrust), 0.0, lerp(0.95f, 1.2f, thrust), 0.12f + 0.38f * m, SEA, LB_GLASS, 3, false) };
             }
             case "hollow_purple": {
-                float ph = saw(t, 4.5f);
-                float merge = seq(ph, 0f, 0f, 2.5f, 0f, 3.3f, 1f, 3.9f, 1f, 4.5f, 0f);
-                if (merge < 0.96f) { // blue in one hand, red in the other, drifting together
-                    double spread = lerp(0.8f, 0.0f, merge);
-                    float s = 0.26f * smooth(ph / 0.5f);
+                // red + blue infinities form, drift together, smash, then the purple flies out
+                float ph = saw(t, 5.6f);
+                float form = seq(ph, 0f, 0f, 0.7f, 1f, 5.2f, 1f, 5.6f, 0f);
+                float smash = seq(ph, 0f, 0f, 2.1f, 0f, 2.75f, 1f, 5.6f, 1f);
+                float purple = seq(ph, 0f, 0f, 2.65f, 0f, 3.15f, 1f, 5.1f, 1f, 5.6f, 0f);
+                if (purple < 0.18f) {
+                    double spread = lerp(1.05f, 0.04f, smash);
+                    float s = 0.24f * form * (1f + 0.12f * sin(t * 18f));
+                    float spin = smash * 0.15f;
                     return new Prop[] {
-                        new Prop(0.7, spread, 1.2, s, LB_CONC, BLUE_GLASS, 2, false),
-                        new Prop(0.7, -spread, 1.2, s, RED_CONC, RED_GLASS, 2, false) };
+                        new Prop(0.72 + spin, spread, 1.28, s, LB_CONC, BLUE_GLASS, 3, false),
+                        new Prop(0.72 + spin, -spread, 1.28, s, RED_CONC, RED_GLASS, 3, false)
+                    };
                 }
-                float big = 0.25f + 0.35f * smooth((ph - 3.3f) / 0.5f);
-                return new Prop[] { new Prop(0.8, 0.0, 1.2, big, CRYING, MAGENTA_GLASS, 4, false) };
+                float big = 0.30f + 0.48f * purple;
+                float fly = smooth((ph - 3.35f) / 1.5f) * 2.8f;
+                return new Prop[] { new Prop(0.9 + fly, 0.0, 1.28, big, CRYING, MAGENTA_GLASS, 5, false) };
             }
             case "fireball_jutsu": {
                 float size = seq(t, 0f, 0f, 2.2f, 0f, 2.6f, 0.35f, 3.4f, 0.9f, 3.9f, 0.5f, 4.4f, 0f);
@@ -126,6 +132,11 @@ public final class EmoteProps {
             case "zoltraak": {
                 float ph = saw(t, 3f);
                 return 5.0f * smooth((ph - 2.0f) / 0.12f) * (1f - smooth((ph - 2.6f) / 0.3f));
+            }
+            case "hollow_purple": {
+                float ph = saw(t, 5.6f);
+                float fire = seq(ph, 0f, 0f, 3.3f, 0f, 3.55f, 1f, 5.0f, 1f, 5.6f, 0f);
+                return fire < 0.05f ? 0f : 3.8f * fire;
             }
             default:
                 return 0f;
@@ -168,8 +179,9 @@ public final class EmoteProps {
         if (bl > 0.05f && props.length > 0) {
             Prop p = props[0];
             double[] o = at(yawDeg, p.fwd(), p.right(), p.up());
-            beam(ps, c, o, yawDeg, bl, 0.20f + 0.10f * sin(t * 30f), e.id().equals("zoltraak") ? PURPLE_CONC : SEA,
-                 e.id().equals("zoltraak") ? MAGENTA_GLASS : LB_GLASS);
+            beam(ps, c, o, yawDeg, bl, 0.20f + 0.10f * sin(t * 30f),
+                 e.id().equals("zoltraak") || e.id().equals("hollow_purple") ? PURPLE_CONC : SEA,
+                 e.id().equals("zoltraak") || e.id().equals("hollow_purple") ? MAGENTA_GLASS : LB_GLASS);
         }
     }
 

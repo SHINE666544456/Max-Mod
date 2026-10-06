@@ -18,7 +18,8 @@ public class EmoteWheelClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         EmoteKeys.register();
-        EmoteConfig.get(); // load early so problems show up at startup
+        EmoteConfig.get();
+        LookTextures.init();
 
         ClientPlayNetworking.registerGlobalReceiver(EmoteBroadcastPayload.TYPE, (payload, context) ->
             context.client().execute(() -> EmoteClient.onRemote(payload.player(), payload.emoteId())));

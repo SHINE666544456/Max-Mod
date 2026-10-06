@@ -39,6 +39,10 @@ public final class EmoteConfig {
     public int tailStyle = 1;
     /** Little pet sitting on your head: 0 = off, 1 = kitten, 2 = fox kit, 3 = bunny. */
     public int pet = 0;
+    /** Hex colours (RRGGBB) for cat extras. Tail also auto-mixes darker/lighter neighbours. */
+    public String earOuter = "2C1A12";
+    public String earInner = "E8A0B0";
+    public String tailColor = "2C1A12";
     /** Most recently played emote ids, newest first. */
     public List<String> recent = new ArrayList<>();
     /** The last emote you played (for the Replay key). */
@@ -93,6 +97,9 @@ public final class EmoteConfig {
         if (c.earStyle < 0 || c.earStyle > 4) c.earStyle = 1;
         if (c.tailStyle < 0 || c.tailStyle > 3) c.tailStyle = 1;
         if (c.pet < 0 || c.pet > 3) c.pet = 0;
+        if (c.earOuter == null || c.earOuter.isBlank()) c.earOuter = "2C1A12";
+        if (c.earInner == null || c.earInner.isBlank()) c.earInner = "E8A0B0";
+        if (c.tailColor == null || c.tailColor.isBlank()) c.tailColor = "2C1A12";
         c.page = Math.floorMod(c.page, PAGES);
         if (c.filterIdx < 0) c.filterIdx = 0;
         if (c.listPage < 0) c.listPage = 0;

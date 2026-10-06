@@ -127,12 +127,16 @@ final class AnimeEmotes {
             p.head(-0.1f, 0, 0); p.lean = -0.05f;
         });
         Emotes.add("hollow_purple", "Hollow Purple", ANIME, "amethyst_cluster", 0, (p, t) -> {
-            float ph = saw(t, 4.5f);
-            float spread = seq(ph, 0f, 1f, 1.5f, 1f, 2.5f, 0f, 4.0f, 0f, 4.5f, 1f);
-            float ray = 0.9f * spread - 0.2f * (1 - spread);
-            p.rightArm(-1.45f, ray, 0); p.leftArm(-1.45f, -ray, 0);
-            p.lean = 0.3f * seq(ph, 0f, 0f, 2.5f, 0f, 3.3f, 1f, 3.9f, 0f, 4.5f, 0f); p.legs(0, 0, 0.2f);
-            p.rootX = sin(t * 40) * 0.2f * (1 - spread);
+            float ph = saw(t, 5.6f);
+            float spread = seq(ph, 0f, 1f, 2.1f, 1f, 2.75f, 0f, 5.6f, 0f);
+            float smash = seq(ph, 0f, 0f, 2.15f, 0f, 2.55f, 1f, 3.15f, 0.25f, 5.6f, 0.15f);
+            p.rightArm(-1.48f, 0.95f * spread, 0);
+            p.leftArm(-1.48f, -0.95f * spread, 0);
+            p.headX = -0.08f * smash;
+            p.lean = 0.12f + 0.5f * smash;
+            p.legs(0, 0, 0.22f);
+            p.rootX = sin(t * 48) * 0.28f * smash;
+            p.rootY = -0.4f * smash;
         });
         Emotes.add("lapse_blue", "Lapse: Blue", ANIME, "blue_dye", 0, (p, t) -> {
             p.rightArm(-1.5f + sin(t * 35) * 0.03f, 0.1f, 0); p.leftArm(0.05f, 0, -0.1f); p.head(0, 0.15f, 0);
