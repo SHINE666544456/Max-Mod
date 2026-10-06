@@ -22,11 +22,6 @@ public final class LookTextures {
     private static DynamicTexture custom, fallback;
     private static int builtOuter = -1, builtInner = -1, builtTail = -1;
 
-    public static void init() {
-        fallback = upload(DEFAULT_ID, OUTER, INNER, TAIL);
-        rebuild();
-    }
-
     public static Identifier self() {
         rebuild();
         return ID;
@@ -35,6 +30,9 @@ public final class LookTextures {
     public static Identifier others() { return DEFAULT_ID; }
 
     public static void rebuild() {
+        // DynamicTexture needs the render device, so create textures lazily on first render/use.
+        if (fallback == null) fallback = upload(DEFAULT_ID, OUTER, INNER, TAIL);
+
         EmoteConfig c = EmoteConfig.get();
         int o = parse(c.earOuter, OUTER);
         int i = parse(c.earInner, INNER);
