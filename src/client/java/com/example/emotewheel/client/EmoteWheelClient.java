@@ -56,6 +56,11 @@ public class EmoteWheelClient implements ClientModInitializer {
             EmoteClient.stopLocal();
         }
         EmoteConfig cfg = EmoteConfig.get();
+        while (EmoteKeys.REPEAT.consumeClick()) {
+            if (mc.screen != null) continue;
+            Emote last = Emotes.byId(cfg.lastEmote);
+            if (last != null) EmoteClient.playLocal(last); // playing the one you're already doing stops it
+        }
         for (int i = 0; i < EmoteKeys.QUICK.length; i++) {
             while (EmoteKeys.QUICK[i].consumeClick()) {
                 if (mc.screen != null) continue;

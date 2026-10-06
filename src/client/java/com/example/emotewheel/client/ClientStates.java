@@ -27,7 +27,7 @@ public final class ClientStates {
     public static boolean set(UUID id, String state, boolean on) {
         Set<String> s = MAP.computeIfAbsent(id, k -> new HashSet<>());
         boolean changed = on ? s.add(state) : s.remove(state);
-        if (changed && States.CAT_GIRL.equals(state)) {
+        if (changed && (States.CAT_GIRL.equals(state) || States.SUBSTITUTION.equals(state))) {
             ClientLevel level = Minecraft.getInstance().level;
             Player p = level == null ? null : level.getPlayerByUUID(id);
             if (p != null) Smoke.puff(level, p.getX(), p.getY(), p.getZ(), 28);

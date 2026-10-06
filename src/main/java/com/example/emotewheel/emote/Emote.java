@@ -28,7 +28,8 @@ public final class Emote {
     private String state;       // persistent toggle this emote flips (e.g. "cat_girl"), or null
     private int stateDelay;     // ticks after starting before the toggle happens
     private String only;        // account name this emote is restricted to, or null for everyone
-    private Fx fx = Fx.NONE;
+    private Fx fx = Fx.NONE;       // signature effect: shown in Light and Full particle modes
+    private Fx fxExtra = Fx.NONE;  // generic effect inferred from the id: only shown in Full mode
 
     Emote(String id, String name, Category category, String icon, float duration, PoseFn fn) {
         this.id = id; this.name = name; this.category = category;
@@ -49,11 +50,28 @@ public final class Emote {
     public String state() { return state; }
     public int stateDelay() { return stateDelay; }
     public String only() { return only; }
+
+    /** A copy of this emote with a different animation (keeps flags, effects, toggle state and restrictions). */
+    Emote withFn(PoseFn newFn) {
+        Emote e = new Emote(id, name, category, icon, duration, newFn);
+        e.flags = flags; e.state = state; e.stateDelay = stateDelay; e.only = only;
+        e.fx = fx; e.fxExtra = fxExtra;
+        return e;
+    }
     public Fx fx() { return fx; }
+    public Fx fxExtra() { return fxExtra; }
+
+    /** Which particle theme to use for the player's particle setting (0 = off, 1 = light, 2 = full). */
+    public Fx fxFor(int mode) {
+        if (mode <= 0) return Fx.NONE;
+        if (fx != Fx.NONE || mode == 1) return fx;
+        return fxExtra;
+    }
 
     // builder-style setters, used while registering
     public Emote flag(int f) { flags |= f; return this; }
     public Emote state(String s, int delayTicks) { this.state = s; this.stateDelay = delayTicks; this.flags |= NOCANCEL; return this; }
     public Emote only(String accountName) { this.only = accountName; return this; }
     public Emote fx(Fx f) { this.fx = f; return this; }
+    public Emote fxExtra(Fx f) { this.fxExtra = f; return this; }
 }

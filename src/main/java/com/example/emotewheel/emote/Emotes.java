@@ -24,6 +24,8 @@ public final class Emotes {
         MoreEmotes.register();
         CatMaidEmotes.register();
         AnimeEmotes.register();
+        OwnerEmotes.register();
+        Remix.apply();
         Flags.apply();
         FxTable.apply();
     }
@@ -34,6 +36,15 @@ public final class Emotes {
         LIST.add(e);
         BY_ID.put(id, e);
         return e;
+    }
+
+    /** Replace an emote's animation in place (same id, same slot in the list). */
+    static void remix(String id, Emote.PoseFn fn) {
+        Emote old = BY_ID.get(id);
+        if (old == null) throw new IllegalStateException("Cannot remix unknown emote: " + id);
+        Emote e = old.withFn(fn);
+        LIST.set(LIST.indexOf(old), e);
+        BY_ID.put(id, e);
     }
 
     public static List<Emote> all() { return Collections.unmodifiableList(LIST); }

@@ -12,12 +12,15 @@ import com.example.emotewheel.net.StateBroadcastPayload;
 import com.example.emotewheel.net.StatePayload;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 
 /**
  * Server side: a tiny relay. Clients tell the server which emote they started/stopped, and the server
@@ -32,6 +35,8 @@ public class EmoteWheelMod implements ModInitializer {
     private static final Map<UUID, Long> LAST_START = new HashMap<>();
     /** Per player: which persistent states (shadow clones, cat-girl) are currently on. */
     private static final Map<UUID, Set<String>> STATES = new HashMap<>();
+    /** Locator-bar range a stealthed player had before we zeroed it, so it can be restored exactly. */
+    private static final Map<UUID, Double> SAVED_RANGE = new HashMap<>();
     private static final long MIN_GAP_NANOS = 100_000_000L; // 0.1s between starts, to stop spam
 
     @Override
@@ -50,6 +55,7 @@ public class EmoteWheelMod implements ModInitializer {
 
             Set<String> set = STATES.computeIfAbsent(player.getUUID(), k -> new HashSet<>());
             if (payload.on()) set.add(state); else set.remove(state);
+            if (States.STEALTH.equals(state)) applyStealth(player, payload.on());
 
             StateBroadcastPayload out = new StateBroadcastPayload(player.getUUID(), state, payload.on());
             for (ServerPlayer other : PlayerLookup.tracking(player)) {
@@ -85,7 +91,7 @@ public class EmoteWheelMod implements ModInitializer {
                 send(viewer, new EmoteBroadcastPayload(sp.getUUID(), ACTIVE.getOrDefault(sp.getUUID(), "")));
                 if (ServerPlayNetworking.canSend(viewer, StateBroadcastPayload.TYPE)) {
                     Set<String> on = STATES.getOrDefault(sp.getUUID(), Set.of());
-                    for (String st : new String[] { States.SHADOW_CLONES, States.CAT_GIRL }) {
+                    for (String st : new String[] { States.SHADOW_CLONES, States.CAT_GIRL, States.SUBSTITUTION, States.STEALTH }) {
                         ServerPlayNetworking.send(viewer, new StateBroadcastPayload(sp.getUUID(), st, on.contains(st)));
                     }
                 }
@@ -97,7 +103,33 @@ public class EmoteWheelMod implements ModInitializer {
             ACTIVE.remove(uuid);
             LAST_START.remove(uuid);
             STATES.remove(uuid);
+            SAVED_RANGE.remove(uuid);
         });
+
+        // dying resets attributes, so put stealth back on the fresh player
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+            Set<String> on = STATES.get(newPlayer.getUUID());
+            if (on != null && on.contains(States.STEALTH)) {
+                SAVED_RANGE.remove(newPlayer.getUUID());
+                applyStealth(newPlayer, true);
+            }
+        });
+    }
+
+    /**
+     * Stealth hides the player from everyone's locator bar by setting their waypoint transmit range to 0
+     * (this works for vanilla clients too). Turning it off restores the exact previous value.
+     */
+    private static void applyStealth(ServerPlayer player, boolean on) {
+        AttributeInstance range = player.getAttribute(Attributes.WAYPOINT_TRANSMIT_RANGE);
+        if (range == null) return;
+        if (on) {
+            SAVED_RANGE.putIfAbsent(player.getUUID(), range.getBaseValue());
+            range.setBaseValue(0.0);
+        } else {
+            Double old = SAVED_RANGE.remove(player.getUUID());
+            if (old != null) range.setBaseValue(old);
+        }
     }
 
     private static void send(ServerPlayer to, EmoteBroadcastPayload payload) {

@@ -85,6 +85,7 @@ public final class EmoteClient {
             return;
         }
         ACTIVE.put(player.getUUID(), new Active(emote, System.nanoTime()));
+        EmoteConfig.get().markUsed(emote.id());
         localTicks = 0;
         localActive = true;
         send(emote.id());
@@ -124,6 +125,14 @@ public final class EmoteClient {
         boolean on = !ClientStates.has(player.getUUID(), state);
         if (on && !States.allowed(state, player.getName().getString())) return;
         ClientStates.set(player.getUUID(), state, on);
+        String label = switch (state) {
+            case States.SHADOW_CLONES -> "Shadow clones";
+            case States.CAT_GIRL -> "Transformation";
+            case States.SUBSTITUTION -> "Substitution";
+            case States.STEALTH -> "Stealth";
+            default -> state;
+        };
+        player.displayClientMessage(net.minecraft.network.chat.Component.literal(label + ": " + (on ? "ON" : "OFF")), true);
         if (ClientPlayNetworking.canSend(StatePayload.TYPE)) {
             ClientPlayNetworking.send(new StatePayload(state, on));
         }

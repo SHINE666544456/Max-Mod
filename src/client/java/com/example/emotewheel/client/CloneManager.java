@@ -18,9 +18,6 @@ import net.minecraft.world.entity.Entity;
 public final class CloneManager {
     private CloneManager() {}
 
-    // (right, forward) offsets in blocks, relative to where the owner is facing when the clones appear
-    private static final double[][] FORMATION = { { -2.2, 0.8 }, { 2.2, 0.8 }, { -1.4, -1.9 }, { 1.4, -1.9 } };
-
     private static final Map<UUID, List<CloneEntity>> CLONES = new HashMap<>();
     private static int nextFakeId = -1000;
 
@@ -61,13 +58,25 @@ public final class CloneManager {
             && States.allowed(States.SHADOW_CLONES, p.getName().getString());
     }
 
+    /**
+     * The group's centre is placed to a random side of you (never on you), and the clones are scattered round it,
+     * so you are never reliably "the one in the middle". Number and layout are different every time.
+     */
     private static List<CloneEntity> spawn(ClientLevel level, AbstractClientPlayer owner) {
-        double yaw = Math.toRadians(owner.getYRot());
-        double fx = -Math.sin(yaw), fz = Math.cos(yaw);   // forward
-        double rx = -Math.cos(yaw), rz = -Math.sin(yaw);  // right
+        java.util.concurrent.ThreadLocalRandom rnd = java.util.concurrent.ThreadLocalRandom.current();
+        int count = 4 + rnd.nextInt(3);                            // 4 to 6 clones
+        double dir = rnd.nextDouble() * Math.PI * 2;                // which way the group sits relative to you
+        double dist = 1.6 + rnd.nextDouble() * 1.6;
+        double cx = Math.cos(dir) * dist, cz = Math.sin(dir) * dist;
+        double offset = rnd.nextDouble() * Math.PI * 2;
+
         List<CloneEntity> list = new ArrayList<>();
-        for (double[] f : FORMATION) {
-            double ox = rx * f[0] + fx * f[1], oz = rz * f[0] + fz * f[1];
+        for (int i = 0; i < count; i++) {
+            double ang = offset + i * (Math.PI * 2 / count) + (rnd.nextDouble() - 0.5) * 0.7;
+            double rad = 1.3 + rnd.nextDouble() * 1.2;
+            double ox = cx + Math.cos(ang) * rad, oz = cz + Math.sin(ang) * rad;
+            double len = Math.hypot(ox, oz);
+            if (len < 1.1) { ox *= 1.1 / Math.max(len, 0.01); oz *= 1.1 / Math.max(len, 0.01); } // don't stand on the real you
             CloneEntity c = new CloneEntity(level, owner, ox, oz);
             c.setId(nextFakeId--); // negative ids can never clash with real server entities
             level.addEntity(c);

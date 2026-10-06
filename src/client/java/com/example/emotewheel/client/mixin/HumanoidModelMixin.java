@@ -13,6 +13,7 @@ import com.example.emotewheel.client.EmoteStateHolder;
 import com.example.emotewheel.client.MaidUtil;
 import com.example.emotewheel.emote.Anim;
 import com.example.emotewheel.emote.Emote;
+import com.example.emotewheel.emote.Flavor;
 import com.example.emotewheel.emote.Pose;
 
 import net.minecraft.client.model.HumanoidModel;
@@ -48,6 +49,11 @@ public abstract class HumanoidModelMixin {
     @Unique private static final Pose emotes$POSE = new Pose();
     @Unique private boolean emotes$dirty;
 
+    @Unique private static final String[] EAR_R = { "", "emote_ear1_r", "emote_ear2_r", "emote_ear3_r", "emote_ear4_r" };
+    @Unique private static final String[] EAR_L = { "", "emote_ear1_l", "emote_ear2_l", "emote_ear3_l", "emote_ear4_l" };
+    @Unique private static final String[] TAIL = { "", "emote_tail1", "emote_tail2", "emote_tail3" };
+    @Unique private static final String[] PET = { "", "emote_pet1", "emote_pet2", "emote_pet3" };
+
     // Hinata outfit sleeve thickness: 1.0 = normal. Lower = thinner.
     @Unique private static final float SLIM = 0.7f;
 
@@ -76,17 +82,24 @@ public abstract class HumanoidModelMixin {
             // Maid ears belong to the ARMOR only; the body model must never draw them (that was the "ears stay on" bug).
             emotes$show(head, "maid_ear_r", false);
             emotes$show(head, "maid_ear_l", false);
-            boolean ears = holder != null && holder.emotes$catEars();
-            boolean tail = holder != null && holder.emotes$catTail();
-            emotes$show(head, "emote_cat_ear_r", ears);
-            emotes$show(head, "emote_cat_ear_l", ears);
-            emotes$show(body, "emote_cat_tail", tail);
-            if (tail && body.hasChild("emote_cat_tail")) {
-                ModelPart tailPart = body.getChild("emote_cat_tail");
-                float now = (System.nanoTime() / 1_000_000L % 100000L) / 1000f;
-                tailPart.zRot = (float) Math.sin(now * 2.6f) * 0.35f;
-                tailPart.xRot = 0.7f + (float) Math.sin(now * 1.7f) * 0.08f;
+
+            int ear = holder != null ? holder.emotes$earStyle() : 0;
+            int tail = holder != null ? holder.emotes$tailStyle() : 0;
+            int pet = holder != null ? holder.emotes$pet() : 0;
+            for (int i = 1; i <= 4; i++) {
+                emotes$show(head, EAR_R[i], ear == i);
+                emotes$show(head, EAR_L[i], ear == i);
             }
+            for (int i = 1; i <= 3; i++) {
+                emotes$show(body, TAIL[i], tail == i);
+                emotes$show(head, PET[i], pet == i);
+            }
+            float now = (System.nanoTime() / 1_000_000L % 1_000_000L) / 1000f;
+            if (tail > 0 && body.hasChild(TAIL[tail])) {
+                ModelPart tp = body.getChild(TAIL[tail]);
+                tp.zRot = (float) Math.sin(now * 2.6f) * 0.35f; // lazy swish
+            }
+            if (pet > 0 && head.hasChild(PET[pet])) emotes$animatePet(head.getChild(PET[pet]), now, holder.emotes$getEmote() != null);
         } else {
             emotes$show(head, "maid_ear_r", true); // shows only where the armor texture paints them
             emotes$show(head, "maid_ear_l", true);
@@ -99,6 +112,31 @@ public abstract class HumanoidModelMixin {
         }
 
         emotes$applyEmote(state, holder);
+    }
+
+    /** The little animal on your head: breathes, looks around, flicks its ears, wags its tail, washes a paw now and then. */
+    @Unique
+    private static void emotes$animatePet(ModelPart pet, float now, boolean excited) {
+        float speed = excited ? 1.7f : 1f; // it gets happy when you emote
+        ModelPart body = pet.getChild("pet_body"), head = pet.getChild("pet_head"), tail = pet.getChild("pet_tail");
+        ModelPart earL = head.getChild("pet_ear_l"), earR = head.getChild("pet_ear_r"), paw = pet.getChild("pet_paw_r");
+
+        body.yScale = 1f + 0.05f * (float) Math.sin(now * 2.2f * speed);              // breathing
+        head.yRot = (float) Math.sin(now * 0.7f) * 0.5f;                               // looking around
+        head.xRot = (float) Math.sin(now * 1.1f) * 0.1f;
+        head.zRot = (float) Math.sin(now * 0.4f) * 0.12f;                              // curious head tilt
+        tail.zRot = (float) Math.sin(now * 4.5f * speed) * 0.5f;                        // tail wag
+
+        float tl = now % 4.3f, tr = (now + 2.1f) % 5.1f;                               // quick ear flicks
+        earL.zRot = 0.2f + (tl < 0.25f ? (float) Math.sin(tl / 0.25f * Math.PI * 3) * 0.5f : 0f);
+        earR.zRot = -0.2f + (tr < 0.25f ? (float) Math.sin(tr / 0.25f * Math.PI * 3) * -0.5f : 0f);
+
+        float w = now % 9f;                                                            // paw wash every 9 seconds
+        float wash = w < 1.6f ? (float) Math.sin(Math.PI * w / 1.6f) : 0f;
+        paw.xRot = -1.9f * wash;
+        head.xRot += 0.35f * wash;
+
+        pet.y = -8f - (excited ? Math.abs((float) Math.sin(now * 7f)) * 0.6f : 0f);    // happy little hops
     }
 
     @Unique
@@ -124,6 +162,7 @@ public abstract class HumanoidModelMixin {
         Pose p = emotes$POSE;
         p.reset();
         emote.fn().apply(p, t);
+        Flavor.apply(p, emote, t); // per-emote personality so similar emotes don't move identically
 
         // ease in at the start, and out at the end of one-shot emotes
         float w = Anim.smooth(t / 0.18f) * p.fade;

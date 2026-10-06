@@ -28,20 +28,19 @@ import net.minecraft.network.chat.Component;
 public class EmoteMenuScreen extends Screen {
     private static final int SLOTS = EmoteConfig.SLOTS;
     private static final int MARGIN = 10;
-    private static final String[] CAT_MODES = { "Off", "Emotes", "Always" };
 
     private final Screen parent;
     private int selSlot;
     private int page;
-    private int filterIdx = 0; // 0 = all, 1 = favorites, 2.. = categories
+    private int filterIdx = 0; // 0 = all, 1 = favorites, 2.. = categories, last = recent
     private String query = "";
     private Emote selected;
     private int listPage = 0;
     private int listPages = 1;
 
     private EditBox search;
-    private Button filterBtn, prevBtn, nextBtn, playBtn, favBtn, clearBtn;
-    private Button optMove, optCam, optOthers, optCat;
+    private Button filterBtn, prevBtn, nextBtn, playBtn, favBtn, clearBtn, randomBtn;
+    private Button settingsBtn;
     private final List<Button> grid = new ArrayList<>();
     private Emote[] gridEmote = new Emote[0];
     private final Button[] slotBtns = new Button[SLOTS];
@@ -56,8 +55,7 @@ public class EmoteMenuScreen extends Screen {
         this.page = EmoteConfig.get().page;
         this.listPage = Math.max(0, EmoteConfig.get().listPage);
         this.filterIdx = Math.max(0, EmoteConfig.get().filterIdx);
-        int filterMax = 2 + Category.values().length;
-        if (this.filterIdx >= filterMax) this.filterIdx = 0;
+        if (this.filterIdx >= filterCount()) this.filterIdx = 0;
     }
 
     @Override
@@ -80,7 +78,7 @@ public class EmoteMenuScreen extends Screen {
         addRenderableWidget(search);
 
         filterBtn = Button.builder(Component.literal("All"), b -> {
-            filterIdx = (filterIdx + 1) % (2 + Category.values().length);
+            filterIdx = (filterIdx + 1) % filterCount();
             listPage = 0;
             persistMenuPage();
             refresh();
@@ -91,7 +89,7 @@ public class EmoteMenuScreen extends Screen {
         cols = Math.max(2, leftW / 96);
         int cellW = (leftW - (cols - 1) * 4) / cols;
         int top = 46;
-        rows = Math.max(3, Math.min(10, (height - top - 76) / 22));
+        rows = Math.max(3, Math.min(10, (height - top - 52) / 22));
         perPage = cols * rows;
         gridEmote = new Emote[perPage];
         for (int i = 0; i < perPage; i++) {
@@ -141,28 +139,26 @@ public class EmoteMenuScreen extends Screen {
         clearBtn = Button.builder(Component.literal("Clear Slot"), b -> {
             if (selSlot >= 0) { EmoteConfig.get().setSlot(page, selSlot, null); refresh(); }
         }).bounds(rx, 180, sw, 20).build();
+        randomBtn = Button.builder(Component.literal("Random"), b -> {
+            List<Emote> pool = filtered();                         // respects the current tab/search
+            if (pool.isEmpty()) pool = EmoteAccess.visible();
+            if (pool.isEmpty()) return;
+            Emote pick = pool.get(java.util.concurrent.ThreadLocalRandom.current().nextInt(pool.size()));
+            minecraft.setScreen(null);
+            EmoteClient.playLocal(pick);
+        }).bounds(rx + sw + 4, 180, sw, 20).build();
         addRenderableWidget(playBtn);
         addRenderableWidget(favBtn);
         addRenderableWidget(clearBtn);
+        addRenderableWidget(randomBtn);
 
-        // options along the bottom, then Done
-        int bw = (width - 2 * MARGIN - 3 * 4) / 4;
-        int by = height - 46;
-        EmoteConfig cfg = EmoteConfig.get();
-        optMove = Button.builder(Component.empty(), b -> { cfg.cancelOnMove = !cfg.cancelOnMove; cfg.save(); refresh(); })
-            .bounds(MARGIN, by, bw, 20).build();
-        optCam = Button.builder(Component.empty(), b -> { cfg.thirdPerson = !cfg.thirdPerson; cfg.save(); refresh(); })
-            .bounds(MARGIN + (bw + 4), by, bw, 20).build();
-        optOthers = Button.builder(Component.empty(), b -> { cfg.showOthers = !cfg.showOthers; cfg.save(); refresh(); })
-            .bounds(MARGIN + 2 * (bw + 4), by, bw, 20).build();
-        optCat = Button.builder(Component.empty(), b -> { cfg.catMode = (cfg.catMode + 1) % 3; cfg.save(); refresh(); })
-            .bounds(MARGIN + 3 * (bw + 4), by, bw, 20).build();
-        addRenderableWidget(optMove);
-        addRenderableWidget(optCam);
-        addRenderableWidget(optOthers);
-        addRenderableWidget(optCat);
+        // the options live in their own screen now; just two buttons along the bottom
+        int bw = (width - 2 * MARGIN - 4) / 2;
+        settingsBtn = Button.builder(Component.literal("Settings..."), b -> minecraft.setScreen(new EmoteSettingsScreen(this)))
+            .bounds(MARGIN, height - 24, bw, 20).build();
+        addRenderableWidget(settingsBtn);
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
-            .bounds(width / 2 - 60, height - 24, 120, 20).build());
+            .bounds(MARGIN + bw + 4, height - 24, bw, 20).build());
 
         refresh();
     }
@@ -176,13 +172,31 @@ public class EmoteMenuScreen extends Screen {
         cfg.save();
     }
 
+    /** All, Favorites, one tab per category, then Recent. */
+    private static int filterCount() { return 3 + Category.values().length; }
+    private static int recentIdx() { return 2 + Category.values().length; }
+
+    /** Search matches the name, the id, or the category ("anime", "dances"...). */
+    private boolean matches(Emote e) {
+        if (query.isEmpty()) return true;
+        return e.name().toLowerCase(Locale.ROOT).contains(query) || e.id().contains(query)
+            || e.category().label.toLowerCase(Locale.ROOT).contains(query);
+    }
+
     private List<Emote> filtered() {
         EmoteConfig cfg = EmoteConfig.get();
         List<Emote> list = new ArrayList<>();
+        if (filterIdx == recentIdx()) { // newest first
+            for (String id : cfg.recent) {
+                Emote e = Emotes.byId(id);
+                if (e != null && EmoteAccess.canUse(e) && matches(e)) list.add(e);
+            }
+            return list;
+        }
         for (Emote e : EmoteAccess.visible()) {
             if (filterIdx == 1 && !cfg.isFavorite(e.id())) continue;
             if (filterIdx >= 2 && e.category() != Category.values()[filterIdx - 2]) continue;
-            if (!query.isEmpty() && !e.name().toLowerCase(Locale.ROOT).contains(query) && !e.id().contains(query)) continue;
+            if (!matches(e)) continue;
             list.add(e);
         }
         return list;
@@ -221,10 +235,6 @@ public class EmoteMenuScreen extends Screen {
         favBtn.active = selected != null;
         clearBtn.active = selSlot >= 0 && cfg.slotId(page, selSlot) != null;
 
-        optMove.setMessage(Component.literal("Stop on move: " + (cfg.cancelOnMove ? "ON" : "OFF")));
-        optCam.setMessage(Component.literal("3rd person: " + (cfg.thirdPerson ? "ON" : "OFF")));
-        optOthers.setMessage(Component.literal("See others: " + (cfg.showOthers ? "ON" : "OFF")));
-        optCat.setMessage(Component.literal("Cat parts: " + CAT_MODES[cfg.catMode]));
     }
 
     private Emote slotEmote(int s) {
@@ -235,6 +245,7 @@ public class EmoteMenuScreen extends Screen {
     private String filterName() {
         if (filterIdx == 0) return "All";
         if (filterIdx == 1) return "\u2605 Favorites";
+        if (filterIdx == recentIdx()) return "Recent";
         return Category.values()[filterIdx - 2].label;
     }
 

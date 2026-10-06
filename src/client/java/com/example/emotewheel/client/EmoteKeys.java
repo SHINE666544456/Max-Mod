@@ -18,6 +18,7 @@ public final class EmoteKeys {
     public static KeyMapping WHEEL;
     public static KeyMapping MENU;
     public static KeyMapping STOP;
+    public static KeyMapping REPEAT;
     public static final KeyMapping[] QUICK = new KeyMapping[EmoteConfig.SLOTS];
 
     static void register() {
@@ -27,6 +28,8 @@ public final class EmoteKeys {
             new KeyMapping("key.emote_wheel.menu", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_N, CATEGORY));
         STOP = KeyBindingHelper.registerKeyBinding(
             new KeyMapping("key.emote_wheel.stop", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
+        REPEAT = KeyBindingHelper.registerKeyBinding(
+            new KeyMapping("key.emote_wheel.repeat", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
         for (int i = 0; i < QUICK.length; i++) {
             QUICK[i] = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                 "key.emote_wheel.slot_" + (i + 1), InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, CATEGORY));

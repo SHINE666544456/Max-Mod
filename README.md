@@ -5,7 +5,7 @@ the old emote-wheel jar, and install just this one (plus Fabric API).
 
 ## What's in it
 - **310+ emotes**: greetings, poses, dances, actions, moods, silly, **anime** (Naruto, Boruto, Jujutsu Kaisen, DBZ, JoJo, One Piece, Demon Slayer, MHA, Bleach, and more) and **cat & maid**.
-- **Particle FX**: party poppers, confetti, hearts, notes, flames, lightning, auras and more, tied to the emote you're playing. Nearby players with the mod see them too.
+- **Particle FX** (calm by default): signature moves like Kamehameha, Chidori, party poppers and hearts get particles. Turn it **Off**, keep it **Light** (default), or go **Full** to give almost every emote its own effect. See *Particles* below.
 - A **Fortnite-style radial wheel**, 3 pages x 8 slots, with a gold rim, glowing hover, page tabs, slot numbers, favorites and a live centre preview. Fully customizable, with search. The last wheel page **and** the last library page/filter in the emote menu are saved.
 - A **Fortnite-style radial wheel**, 3 pages x 8 slots, fully customizable, with favorites and search.
 - A **live preview** of your own character in the menu: hover any emote to watch it.
@@ -19,10 +19,34 @@ the old emote-wheel jar, and install just this one (plus Fabric API).
 |---|---|
 | **B** (hold) | Open the wheel. Point at a slice and **let go to play it**. Tap instead, then click a slice. |
 | **N** | Emote menu: library, wheel editor, preview, options |
-| *unbound* | Stop emote, and Quick Emote: Slot 1-8 |
+| *unbound* | Stop emote, **Replay Last Emote**, and Quick Emote: Slot 1-8 |
 
 On the wheel: **1/2/3** or mouse wheel = page, **right-click** a slice = edit it, **E** = full menu.
 In the menu: pick a wheel slot, then click emotes to fill it. **Play**, **Favorite**, **Clear Slot**, and the options along the bottom.
+
+## Particles (Options > "Particles")
+| Setting | What you get |
+|---|---|
+| **Off** | No emote particles at all, and the Shadow Clone / Sexy Jutsu smoke is off too. |
+| **Light** (default) | Only signature emotes (about 30 of them), a small burst when they start, then a slow trickle for at most 4 seconds. Only within 24 blocks. |
+| **Full** | The big version: almost every emote has a theme, bigger bursts, constant trickle, 48 blocks. |
+
+It only changes what *you* see. "See others' emotes: OFF" also hides other players' particles.
+
+## Small quality-of-life extras
+- **Replay Last Emote** key (unbound by default; set it in Controls). Press it again to stop.
+- **Recent** tab in the emote menu (the last 12 you played), after the category tabs.
+- **Random** button in the menu: plays a random emote from whatever tab/search you're looking at.
+- **Stop button on the wheel**: while you're emoting, the middle of the wheel says STOP. Click it, or open the wheel and let go over the middle, to cancel.
+- Search also matches categories, so typing `anime`, `dance` or `maid` works.
+
+## New in 2.2
+- **Repetitive emotes fixed.** I compared every emote's motion and found 228 near-duplicate pairs; about 30 emotes were rewritten with their own body language, and every emote now has a small built-in "personality" (breathing, weight shifts, head wander, a category-flavoured entrance), so similar poses no longer move identically. Near-duplicate pairs are down to 57.
+- **3D jutsu props.** Rasengan, Chidori (with crackling arcs), Kamehameha (ball + short beam), Hollow Purple, Lapse Blue, Reversal Red, the Fireball, Spirit Gun and Zoltraak now draw real spinning, glowing 3D objects, with matching sparks.
+- **Cat ears / tail / pet.** *Settings > Ears* (Off, Cat, Fox, Bunny, Bear), *Tail* (Off, Cat, Fox, Bunny), and *Pet on my head* (Kitten, Fox kit, Bunny): a little animal that breathes, looks around, flicks its ears, wags its tail and washes a paw. All textured from your skin. Only you see your style choices; other players with the mod see the classic cat look.
+- **Settings screen** (button in the Emote Menu) holds every option in one place.
+- **Wheel performance.** The wheel's shape is computed once instead of every frame (about 5 ms of per-frame work down to a few microseconds).
+- **Owner-only toggles** (account `SSK1P`, see `States.java`): Shadow Clones (now 4 to 6 clones in a random layout, so you're never the middle one), **Substitution Jutsu** (become the block you hold in your off hand; anything that isn't a plain block becomes an oak log), and **Vanish** (hides your nametag and your locator-bar dot; the server zeroes your waypoint transmit range, which also works against vanilla clients). Each shows "ON/OFF" on the action bar.
 
 ## Armor outfits (rename in an anvil, exactly)
 | Armor | Name | Outfit |

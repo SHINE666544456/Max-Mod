@@ -31,6 +31,18 @@ public final class EmoteConfig {
     public boolean showOthers = true;
     /** Cat ears + tail on yourself: 0 = never, 1 = during cat emotes, 2 = always (only you see 'always'). */
     public int catMode = 1;
+    /** Emote particles: 0 = off, 1 = light (default, signature moves only), 2 = full (every emote). */
+    public int fxMode = 1;
+    /** Ear style on yourself: 0 = off, 1 = cat, 2 = fox, 3 = bunny, 4 = bear. */
+    public int earStyle = 1;
+    /** Tail style on yourself: 0 = off, 1 = cat, 2 = fox, 3 = bunny pom. */
+    public int tailStyle = 1;
+    /** Little pet sitting on your head: 0 = off, 1 = kitten, 2 = fox kit, 3 = bunny. */
+    public int pet = 0;
+    /** Most recently played emote ids, newest first. */
+    public List<String> recent = new ArrayList<>();
+    /** The last emote you played (for the Replay key). */
+    public String lastEmote = null;
     public int page = 0;
     /** Last library page in the full emote menu. */
     public int listPage = 0;
@@ -74,6 +86,13 @@ public final class EmoteConfig {
             if (c.slots[i] != null && Emotes.byId(c.slots[i]) == null) c.slots[i] = null;
         }
         c.favorites.removeIf(id -> Emotes.byId(id) == null);
+        if (c.recent == null) c.recent = new ArrayList<>();
+        c.recent.removeIf(id -> Emotes.byId(id) == null);
+        if (c.lastEmote != null && Emotes.byId(c.lastEmote) == null) c.lastEmote = null;
+        if (c.fxMode < 0 || c.fxMode > 2) c.fxMode = 1;
+        if (c.earStyle < 0 || c.earStyle > 4) c.earStyle = 1;
+        if (c.tailStyle < 0 || c.tailStyle > 3) c.tailStyle = 1;
+        if (c.pet < 0 || c.pet > 3) c.pet = 0;
         c.page = Math.floorMod(c.page, PAGES);
         if (c.filterIdx < 0) c.filterIdx = 0;
         if (c.listPage < 0) c.listPage = 0;
@@ -96,6 +115,15 @@ public final class EmoteConfig {
     }
 
     public boolean isFavorite(String id) { return favorites.contains(id); }
+
+    /** Remember an emote you just played (feeds the Recent tab and the Replay key). */
+    public void markUsed(String id) {
+        recent.remove(id);
+        recent.add(0, id);
+        while (recent.size() > 12) recent.remove(recent.size() - 1);
+        lastEmote = id;
+        save();
+    }
 
     public void toggleFavorite(String id) {
         if (!favorites.remove(id)) favorites.add(id);

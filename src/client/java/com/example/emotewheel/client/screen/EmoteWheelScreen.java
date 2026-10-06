@@ -29,6 +29,7 @@ public class EmoteWheelScreen extends Screen {
 
     private int page;
     private int hovered = -1;
+    private boolean hubHover = false; // mouse is over the centre
     private boolean wheelKeyDown = true;
     private final long openedAt = System.nanoTime();
 
@@ -49,6 +50,8 @@ public class EmoteWheelScreen extends Screen {
     public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
         int cx = width / 2, cy = height / 2;
         hovered = slotAt(mouseX - cx, mouseY - cy);
+        int hdx = mouseX - cx, hdy = mouseY - cy;
+        hubHover = hdx * hdx + hdy * hdy < R_IN * R_IN;
 
         drawVignette(g, cx, cy);
         drawDisc(g, cx, cy);
@@ -63,31 +66,63 @@ public class EmoteWheelScreen extends Screen {
         g.fill(cx - s, cy - s, cx + s, cy + s, 0x66000000);
     }
 
-    private void drawDisc(GuiGraphics g, int cx, int cy) {
-        for (int dy = -R_HALO; dy <= R_HALO; dy++) {
+    // ---- the disc is the same shape every frame, so its strips are computed once and replayed ----
+    private static int[] runDy, runX0, runX1, runSec;
+    private static float[] runR;
+    private static int runCount;
+
+    private static final int[][] HUES = {
+        {42, 28, 72}, {28, 36, 78}, {24, 52, 64}, {56, 28, 48},
+        {36, 24, 70}, {22, 44, 72}, {48, 32, 58}, {30, 30, 68}
+    };
+
+    // per-frame values, computed once in drawDisc instead of once per strip
+    private final boolean[] frameFilled = new boolean[SLOTS];
+    private float framePulse;
+
+    private static void buildRuns() {
+        if (runDy != null) return;
+        int cap = 8192;
+        int[] dys = new int[cap], x0s = new int[cap], x1s = new int[cap], secs = new int[cap];
+        float[] rs = new float[cap];
+        int n = 0;
+        for (int dy = -R_HALO; dy <= R_HALO; dy += 2) { // 2px-tall bands: half the fill calls, same look
             int span2 = R_HALO * R_HALO - dy * dy;
             if (span2 < 0) continue;
             int half = (int) Math.sqrt(span2);
             int runStart = -half;
             int runSector = sectorAt(-half, dy);
-            for (int dx = -half + 1; dx <= half; dx++) {
-                int s = sectorAt(dx, dy);
-                if (s != runSector) {
-                    flush(g, cx, cy, runStart, dx, dy, runSector);
+            for (int dx = -half + 1; dx <= half + 1; dx++) {
+                int sec = dx <= half ? sectorAt(dx, dy) : Integer.MIN_VALUE; // sentinel flushes the last run
+                if (sec != runSector) {
+                    if (runSector != -1 && dx > runStart) {
+                        if (n == cap) { // grow
+                            cap *= 2;
+                            dys = java.util.Arrays.copyOf(dys, cap); x0s = java.util.Arrays.copyOf(x0s, cap);
+                            x1s = java.util.Arrays.copyOf(x1s, cap); secs = java.util.Arrays.copyOf(secs, cap);
+                            rs = java.util.Arrays.copyOf(rs, cap);
+                        }
+                        int mx = (runStart + dx - 1) / 2;
+                        dys[n] = dy; x0s[n] = runStart; x1s[n] = dx; secs[n] = runSector;
+                        rs[n] = (float) Math.sqrt((double) mx * mx + (double) dy * dy);
+                        n++;
+                    }
                     runStart = dx;
-                    runSector = s;
+                    runSector = sec;
                 }
             }
-            flush(g, cx, cy, runStart, half + 1, dy, runSector);
         }
+        runDy = dys; runX0 = x0s; runX1 = x1s; runSec = secs; runR = rs; runCount = n;
     }
 
-    private void flush(GuiGraphics g, int cx, int cy, int x0, int x1, int dy, int sector) {
-        if (sector == -1 || x1 <= x0) return;
-        int mx = (x0 + x1 - 1) / 2;
-        double r = Math.sqrt((double) mx * mx + (double) dy * dy);
-        int color = colorFor(sector, r);
-        g.fill(cx + x0, cy + dy, cx + x1, cy + dy + 1, color);
+    private void drawDisc(GuiGraphics g, int cx, int cy) {
+        buildRuns();
+        for (int i = 0; i < SLOTS; i++) frameFilled[i] = slotEmote(i) != null;
+        framePulse = hovered >= 0 ? 0.55f + 0.45f * (float) Math.sin(System.nanoTime() / 1.4e8) : 0f;
+        for (int i = 0; i < runCount; i++) {
+            int y = cy + runDy[i];
+            g.fill(cx + runX0[i], y, cx + runX1[i], y + 2, colorFor(runSec[i], runR[i]));
+        }
     }
 
     private int colorFor(int sector, double r) {
@@ -100,9 +135,9 @@ public class EmoteWheelScreen extends Screen {
             return 0xF2141022;
         }
         boolean hover = sector == hovered;
-        boolean filled = slotEmote(sector) != null;
+        boolean filled = sector >= 0 && frameFilled[sector];
         float u = Mth.clamp((float) ((r - R_IN) / (double) (R_OUT - R_IN)), 0f, 1f);
-        float pulse = hover ? 0.55f + 0.45f * (float) Math.sin(System.nanoTime() / 1.4e8) : 0f;
+        float pulse = hover ? framePulse : 0f;
 
         int cr, cg, cb, a;
         if (hover) {
@@ -112,12 +147,7 @@ public class EmoteWheelScreen extends Screen {
             cb = 255;
         } else if (filled) {
             a = 0xCC;
-            // slight hue shift per slice so the pie reads as separate wedges
-            int[][] hues = {
-                {42, 28, 72}, {28, 36, 78}, {24, 52, 64}, {56, 28, 48},
-                {36, 24, 70}, {22, 44, 72}, {48, 32, 58}, {30, 30, 68}
-            };
-            int[] h = hues[Math.floorMod(sector, hues.length)];
+            int[] h = HUES[Math.floorMod(sector, HUES.length)]; // slight hue shift per slice so the pie reads as wedges
             cr = h[0]; cg = h[1]; cb = h[2];
         } else {
             a = 0x99;
@@ -148,6 +178,10 @@ public class EmoteWheelScreen extends Screen {
             g.renderItem(Icons.of(h), cx - 8, cy - 18);
             drawCentered(g, trim(h.name(), 72), cx, cy + 2, 0xFFFFF4C8, true);
             drawCentered(g, h.category().label, cx, cy + 13, 0xFFB8C0E0, false);
+        } else if (playing()) {
+            // QoL: while you're emoting the middle of the wheel is a Stop button
+            drawCentered(g, "STOP", cx, cy - 8, hubHover ? 0xFFFF9090 : 0xFFE08080, true);
+            drawCentered(g, "click / release", cx, cy + 4, 0xFF8A90B0, false);
         } else {
             drawCentered(g, "PAGE", cx, cy - 10, 0xFF8A90B0, false);
             drawCentered(g, String.valueOf(page + 1), cx, cy + 2, 0xFFFFE8A0, true);
@@ -234,6 +268,11 @@ public class EmoteWheelScreen extends Screen {
         return indexForAngle(dx, dy);
     }
 
+    /** Is the local player in the middle of an emote right now? */
+    private boolean playing() {
+        return minecraft != null && minecraft.player != null && EmoteClient.current(minecraft.player.getUUID()) != null;
+    }
+
     private Emote slotEmote(int slot) {
         Emote e = Emotes.byId(EmoteConfig.get().slotId(page, slot));
         return EmoteAccess.canUse(e) ? e : null;
@@ -268,6 +307,11 @@ public class EmoteWheelScreen extends Screen {
                 if (mx >= x && mx < x + TAB_W && my >= y && my < y + TAB_H) { setPage(p); return true; }
             }
         }
+        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT && hubHover && playing()) {
+            onClose();
+            EmoteClient.stopLocal();
+            return true;
+        }
         int slot = slotAt(mx - cx, my - cy);
         if (slot >= 0) {
             if (event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) { openEditor(slot); return true; }
@@ -300,6 +344,9 @@ public class EmoteWheelScreen extends Screen {
             if (!wasHeld) return true;
             if (hovered >= 0) {
                 activate(hovered);
+            } else if (hubHover && playing()) {
+                onClose();
+                EmoteClient.stopLocal();   // flick to the middle and let go to cancel
             } else if ((System.nanoTime() - openedAt) > 350_000_000L) {
                 onClose();
             }

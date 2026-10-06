@@ -1,12 +1,30 @@
 package com.example.emotewheel.emote;
 
+import java.util.Map;
+
 /** Picks a particle theme for every emote that didn't set one explicitly. */
 final class FxTable {
     private FxTable() {}
 
+    /** Emotes where the particles ARE the point. These show in Light and Full mode. */
+    private static final Map<String, Fx> CURATED = Map.of(
+        "party_popper", Fx.POPPER,
+        "confetti", Fx.POPPER,
+        "fireworks_show", Fx.POPPER,
+        "sparkler", Fx.SPARKLE,
+        "blow_kiss", Fx.HEARTS,
+        "heart_hands", Fx.HEARTS,
+        "love_struck", Fx.HEARTS,
+        "cry", Fx.RAIN);
+
     static void apply() {
         for (Emote e : Emotes.all()) {
-            if (e.fx() == Fx.NONE) e.fx(infer(e));
+            if (e.fx() == Fx.NONE) {
+                Fx c = CURATED.get(e.id());
+                if (c != null) e.fx(c);
+            }
+            // Everything else only gets a (guessed) theme in Full mode, so the default stays calm.
+            if (e.fx() == Fx.NONE) e.fxExtra(infer(e));
         }
     }
 

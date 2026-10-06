@@ -9,6 +9,9 @@ public final class Smoke {
     private Smoke() {}
 
     public static void puff(ClientLevel level, double x, double y, double z, int count) {
+        int mode = EmoteConfig.get().fxMode;
+        if (mode <= 0) return;                                  // particles off
+        if (mode == 1) count = Math.max(4, Math.round(count * 0.4f)); // light: a small poof
         RandomSource r = level.random;
         for (int i = 0; i < count; i++) {
             double dx = (r.nextDouble() - 0.5) * 1.4, dy = r.nextDouble() * 1.9, dz = (r.nextDouble() - 0.5) * 1.4;
