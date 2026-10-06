@@ -123,7 +123,7 @@ public abstract class LivingEntityRendererMixin {
         Emote e = h.emotes$getEmote();
         if (e != null && EmoteProps.has(e)) EmoteProps.submit(e, h.emotes$getTime(), state.bodyRot, poseStack, collector);
         EntityModel<?> model = getModel();
-        if (model instanceof PlayerModel<?> pm && (h.emotes$earStyle() > 0 || h.emotes$tailStyle() > 0 || h.emotes$pet() > 0)) {
+        if (model instanceof PlayerModel pm && (h.emotes$earStyle() > 0 || h.emotes$tailStyle() > 0 || h.emotes$pet() > 0)) {
             LookParts.submit(pm, state, poseStack, collector, LookParts.textureFor(h.emotes$isSelf()),
                 h.emotes$earStyle(), h.emotes$tailStyle(), h.emotes$pet());
         }

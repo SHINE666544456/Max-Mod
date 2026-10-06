@@ -7,6 +7,7 @@ import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 
@@ -19,9 +20,9 @@ public final class LookParts {
     private static final String[] TAIL = { "", "emote_tail1", "emote_tail2", "emote_tail3" };
     private static final String[] PET = { "", "emote_pet1", "emote_pet2", "emote_pet3" };
 
-    public static void submit(PlayerModel<?> model, LivingEntityRenderState state, PoseStack ps,
+    public static void submit(PlayerModel model, LivingEntityRenderState state, PoseStack ps,
                               SubmitNodeCollector collector, Identifier tex, int ear, int tail, int pet) {
-        RenderType rt = RenderType.entityCutoutNoCull(tex);
+        RenderType rt = RenderTypes.entityCutoutNoCull(tex);
         int light = state.lightCoords;
         int overlay = OverlayTexture.NO_OVERLAY;
         ModelPart root = model.root();
