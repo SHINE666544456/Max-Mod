@@ -124,9 +124,25 @@ public final class EmoteClient {
     private static void toggleState(LocalPlayer player, String state) {
         boolean on = !ClientStates.has(player.getUUID(), state);
         if (on && !States.allowed(state, player.getName().getString())) return;
+
+        // Clone modes are mutually exclusive: turning one on turns the others off.
+        if (on && States.isCloneState(state)) {
+            for (String other : States.CLONE_STATES) {
+                if (other.equals(state)) continue;
+                if (ClientStates.has(player.getUUID(), other)) {
+                    ClientStates.set(player.getUUID(), other, false);
+                    if (ClientPlayNetworking.canSend(StatePayload.TYPE)) {
+                        ClientPlayNetworking.send(new StatePayload(other, false));
+                    }
+                }
+            }
+        }
+
         ClientStates.set(player.getUUID(), state, on);
         String label = switch (state) {
-            case States.SHADOW_CLONES -> "Shadow clones";
+            case States.SHADOW_CLONES -> "Shadow Clone Jutsu";
+            case States.JUST_A_CLONE -> "Just a Clone";
+            case States.MULTI_SHADOW_CLONES -> "Multi-Shadow Clone Jutsu (" + EmoteConfig.get().multiCloneCount + ")";
             case States.CAT_GIRL -> "Transformation";
             case States.SUBSTITUTION -> "Substitution";
             case States.STEALTH -> "Stealth";

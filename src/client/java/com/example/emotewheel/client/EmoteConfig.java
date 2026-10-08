@@ -39,6 +39,8 @@ public final class EmoteConfig {
     public int tailStyle = 1;
     /** Little pet sitting on your head: 0 = off, 1 = kitten, 2 = fox kit, 3 = bunny. */
     public int pet = 0;
+    /** How many clones Multi-Shadow Clone Jutsu spawns (owner only). No upper limit. */
+    public int multiCloneCount = 8;
     /** Hex colours (RRGGBB) for cat extras. Tail also auto-mixes darker/lighter neighbours. */
     public String earOuter = "2C1A12";
     public String earInner = "E8A0B0";
@@ -97,6 +99,7 @@ public final class EmoteConfig {
         if (c.earStyle < 0 || c.earStyle > 4) c.earStyle = 1;
         if (c.tailStyle < 0 || c.tailStyle > 3) c.tailStyle = 1;
         if (c.pet < 0 || c.pet > 3) c.pet = 0;
+        if (c.multiCloneCount < 1) c.multiCloneCount = 8;
         if (c.earOuter == null || c.earOuter.isBlank()) c.earOuter = "2C1A12";
         if (c.earInner == null || c.earInner.isBlank()) c.earInner = "E8A0B0";
         if (c.tailColor == null || c.tailColor.isBlank()) c.tailColor = "2C1A12";

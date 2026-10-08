@@ -531,11 +531,27 @@ final class AnimeEmotes {
         }).fx(Fx.POWER);
 
         // ---------------------------------------------------------------- toggles (see Flags / States)
+        // Basic: a few clones, available to everyone
         Emotes.add("shadow_clone", "Shadow Clone Jutsu", ANIME, "ender_pearl", 1.8f, (p, t) -> {
             float e = env(t, 0.25f, 1.0f, 0.35f);
             p.rightArm(lerp(0f, -1.45f, e), lerp(0f, -0.75f, e), 0); p.leftArm(lerp(0f, -1.6f, e), lerp(0f, 0.75f, e), 0);
             p.headX = 0.1f * e; p.legs(0, 0, 0.1f * e);
-        }).state(States.SHADOW_CLONES, 8).only(States.OWNER);
+        }).state(States.SHADOW_CLONES, 8);
+
+        // Exactly one clone, available to everyone
+        Emotes.add("just_a_clone", "Just a Clone Jutsu", ANIME, "slime_ball", 1.6f, (p, t) -> {
+            float e = env(t, 0.25f, 0.9f, 0.3f);
+            p.rightArm(lerp(0f, -1.4f, e), lerp(0f, -0.7f, e), 0); p.leftArm(lerp(0f, -1.5f, e), lerp(0f, 0.7f, e), 0);
+            p.headX = 0.08f * e; p.legs(0, 0, 0.08f * e);
+        }).state(States.JUST_A_CLONE, 8);
+
+        // Many clones (count set in Emote Settings). Owner only.
+        Emotes.add("multi_shadow_clone", "Multi-Shadow Clone Jutsu", ANIME, "ender_eye", 2.0f, (p, t) -> {
+            float e = env(t, 0.25f, 1.2f, 0.4f);
+            p.rightArm(lerp(0f, -1.5f, e), lerp(0f, -0.8f, e), 0); p.leftArm(lerp(0f, -1.65f, e), lerp(0f, 0.8f, e), 0);
+            p.headX = 0.12f * e; p.legs(0, 0, 0.12f * e);
+            p.spin = TAU * 0.15f * smooth((t - 0.5f) / 1.0f);
+        }).state(States.MULTI_SHADOW_CLONES, 10).only(States.OWNER);
 
         Emotes.add("sexy_jutsu", "Sexy Jutsu", ANIME, "pink_petals", 2.2f, (p, t) -> {
             float seal = env(t, 0.2f, 0.4f, 0.2f);

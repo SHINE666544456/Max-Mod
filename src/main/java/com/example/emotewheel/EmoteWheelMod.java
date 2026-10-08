@@ -50,10 +50,23 @@ public class EmoteWheelMod implements ModInitializer {
             ServerPlayer player = context.player();
             String state = payload.state();
             if (!States.isKnown(state)) return;
-            // turning a state OFF is always allowed; turning it ON needs permission (e.g. clones are SSK1P only)
+            // turning a state OFF is always allowed; turning it ON needs permission
             if (payload.on() && !States.allowed(state, player.getName().getString())) return;
 
             Set<String> set = STATES.computeIfAbsent(player.getUUID(), k -> new HashSet<>());
+            // Clone modes are mutually exclusive
+            if (payload.on() && States.isCloneState(state)) {
+                for (String other : States.CLONE_STATES) {
+                    if (other.equals(state)) continue;
+                    if (set.remove(other)) {
+                        StateBroadcastPayload clear = new StateBroadcastPayload(player.getUUID(), other, false);
+                        for (ServerPlayer otherP : PlayerLookup.tracking(player)) {
+                            if (ServerPlayNetworking.canSend(otherP, StateBroadcastPayload.TYPE))
+                                ServerPlayNetworking.send(otherP, clear);
+                        }
+                    }
+                }
+            }
             if (payload.on()) set.add(state); else set.remove(state);
             if (States.STEALTH.equals(state)) applyStealth(player, payload.on());
 
@@ -91,7 +104,7 @@ public class EmoteWheelMod implements ModInitializer {
                 send(viewer, new EmoteBroadcastPayload(sp.getUUID(), ACTIVE.getOrDefault(sp.getUUID(), "")));
                 if (ServerPlayNetworking.canSend(viewer, StateBroadcastPayload.TYPE)) {
                     Set<String> on = STATES.getOrDefault(sp.getUUID(), Set.of());
-                    for (String st : new String[] { States.SHADOW_CLONES, States.CAT_GIRL, States.SUBSTITUTION, States.STEALTH }) {
+                    for (String st : States.ALL) {
                         ServerPlayNetworking.send(viewer, new StateBroadcastPayload(sp.getUUID(), st, on.contains(st)));
                     }
                 }

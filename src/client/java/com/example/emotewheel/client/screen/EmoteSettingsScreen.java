@@ -63,6 +63,10 @@ public class EmoteSettingsScreen extends Screen {
         opts.add(new Opt(() -> "Ears: " + EARS[c.earStyle], () -> c.earStyle = (c.earStyle + 1) % EARS.length));
         opts.add(new Opt(() -> "Tail: " + TAILS[c.tailStyle], () -> c.tailStyle = (c.tailStyle + 1) % TAILS.length));
         opts.add(new Opt(() -> "Pet on my head: " + PETS[c.pet], () -> c.pet = (c.pet + 1) % PETS.length));
+        opts.add(new Opt(() -> "Multi-Shadow clones: " + c.multiCloneCount + " (click +1)", () -> {
+            // No hard cap. Click adds 1. Edit config/emote_wheel.json for huge values; very high counts will lag.
+            c.multiCloneCount = c.multiCloneCount + 1;
+        }));
 
         int colW = 190, gap = 6, rowH = 24;
         int x0 = width / 2 - colW - gap / 2, x1 = width / 2 + gap / 2;
