@@ -19,6 +19,8 @@ public final class EmoteKeys {
     public static KeyMapping MENU;
     public static KeyMapping STOP;
     public static KeyMapping REPEAT;
+    /** Owner-only: toggle the multi-shadow clone count panel. */
+    public static KeyMapping CLONE_PANEL;
     public static final KeyMapping[] QUICK = new KeyMapping[EmoteConfig.SLOTS];
 
     static void register() {
@@ -30,6 +32,8 @@ public final class EmoteKeys {
             new KeyMapping("key.emote_wheel.stop", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
         REPEAT = KeyBindingHelper.registerKeyBinding(
             new KeyMapping("key.emote_wheel.repeat", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
+        CLONE_PANEL = KeyBindingHelper.registerKeyBinding(
+            new KeyMapping("key.emote_wheel.clone_panel", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
         for (int i = 0; i < QUICK.length; i++) {
             QUICK[i] = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                 "key.emote_wheel.slot_" + (i + 1), InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, CATEGORY));

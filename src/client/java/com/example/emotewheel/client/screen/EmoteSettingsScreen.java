@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import com.example.emotewheel.client.EmoteAccess;
 import com.example.emotewheel.client.EmoteConfig;
 import com.example.emotewheel.client.LookTextures;
 
@@ -82,30 +83,34 @@ public class EmoteSettingsScreen extends Screen {
             addRenderableWidget(b);
         }
 
-        // ---- Multi-Shadow clone count (easy controls) ----
+        // ---- Multi-Shadow clone count (owner only — others never see this) ----
         int cy = y0 + ((opts.size() + 1) / 2) * rowH + 8;
+        boolean owner = EmoteAccess.isOwner();
         cloneRowY = cy;
-        int cx = width / 2;
-        // number box in the middle
-        cloneCountBox = new EditBox(font, cx - 28, cy, 56, 18, Component.literal("clones"));
-        cloneCountBox.setMaxLength(6);
-        cloneCountBox.setValue(String.valueOf(c.multiCloneCount));
-        cloneCountBox.setFilter(s -> s.isEmpty() || s.chars().allMatch(Character::isDigit));
-        addRenderableWidget(cloneCountBox);
+        if (owner) {
+            int cx = width / 2;
+            cloneCountBox = new EditBox(font, cx - 28, cy, 56, 18, Component.literal("clones"));
+            cloneCountBox.setMaxLength(6);
+            cloneCountBox.setValue(String.valueOf(c.multiCloneCount));
+            cloneCountBox.setFilter(s -> s.isEmpty() || s.chars().allMatch(Character::isDigit));
+            addRenderableWidget(cloneCountBox);
 
-        addRenderableWidget(Button.builder(Component.literal("-10"), b -> nudgeClones(-10))
-            .bounds(cx - 140, cy - 1, 40, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("-1"), b -> nudgeClones(-1))
-            .bounds(cx - 96, cy - 1, 36, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("+1"), b -> nudgeClones(1))
-            .bounds(cx + 32, cy - 1, 36, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("+10"), b -> nudgeClones(10))
-            .bounds(cx + 72, cy - 1, 40, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("Apply"), b -> applyCloneCount())
-            .bounds(cx + 116, cy - 1, 50, 20).build());
+            addRenderableWidget(Button.builder(Component.literal("-10"), b -> nudgeClones(-10))
+                .bounds(cx - 140, cy - 1, 40, 20).build());
+            addRenderableWidget(Button.builder(Component.literal("-1"), b -> nudgeClones(-1))
+                .bounds(cx - 96, cy - 1, 36, 20).build());
+            addRenderableWidget(Button.builder(Component.literal("+1"), b -> nudgeClones(1))
+                .bounds(cx + 32, cy - 1, 36, 20).build());
+            addRenderableWidget(Button.builder(Component.literal("+10"), b -> nudgeClones(10))
+                .bounds(cx + 72, cy - 1, 40, 20).build());
+            addRenderableWidget(Button.builder(Component.literal("Apply"), b -> applyCloneCount())
+                .bounds(cx + 116, cy - 1, 50, 20).build());
+        } else {
+            cloneCountBox = null;
+        }
 
         // ---- Colours ----
-        int hy = cy + 36;
+        int hy = owner ? cy + 36 : cy;
         int fieldW = 88;
         outerBox = hexField(x0 + 92, hy, fieldW, c.earOuter);
         innerBox = hexField(x1 + 92, hy, fieldW, c.earInner);
@@ -209,16 +214,19 @@ public class EmoteSettingsScreen extends Screen {
         String title = "Emote Settings";
         g.drawString(font, title, width / 2 - font.width(title) / 2, 14, 0xFFFFFFFF);
 
-        // Multi-Shadow label
-        String cloneLabel = "Multi-Shadow Clone count:";
-        g.drawString(font, cloneLabel, width / 2 - font.width(cloneLabel) / 2, cloneRowY - 12, 0xFFE8D090);
-        if (!cloneStatus.isEmpty()) {
-            g.drawString(font, cloneStatus, width / 2 - font.width(cloneStatus) / 2, cloneRowY + 22, 0xFFA0E8B0);
+        // Multi-Shadow label (owner only)
+        boolean owner = EmoteAccess.isOwner();
+        if (owner) {
+            String cloneLabel = "Multi-Shadow Clone count:";
+            g.drawString(font, cloneLabel, width / 2 - font.width(cloneLabel) / 2, cloneRowY - 12, 0xFFE8D090);
+            if (!cloneStatus.isEmpty()) {
+                g.drawString(font, cloneStatus, width / 2 - font.width(cloneStatus) / 2, cloneRowY + 22, 0xFFA0E8B0);
+            }
         }
 
         int colW = 190, gap = 6;
         int x0 = width / 2 - colW - gap / 2, x1 = width / 2 + gap / 2;
-        int hy = cloneRowY + 36;
+        int hy = owner ? cloneRowY + 36 : cloneRowY;
         g.drawString(font, "Ear outer #", x0, hy + 5, 0xFFC8D0E8);
         g.drawString(font, "Ear inner #", x1, hy + 5, 0xFFC8D0E8);
         g.drawString(font, "Tail #", x0, hy + 29, 0xFFC8D0E8);
@@ -234,7 +242,9 @@ public class EmoteSettingsScreen extends Screen {
         if (!colourStatus.isEmpty()) {
             g.drawString(font, colourStatus, width / 2 - font.width(colourStatus) / 2, hy + 98, 0xFFA0E8B0);
         }
-        String tip = "Type a number or use +/- then Apply. Re-cast Multi-Shadow Clone to respawn.";
+        String tip = owner
+            ? "Type a number or use +/- then Apply. Re-cast Multi-Shadow Clone to respawn."
+            : "Pet uses its own fur atlas (not your hair).";
         g.drawString(font, tip, width / 2 - font.width(tip) / 2, Math.min(height - 42, hy + 112), 0xFF9AA4C0);
     }
 

@@ -2,6 +2,7 @@ package com.example.emotewheel.client;
 
 import com.example.emotewheel.client.screen.EmoteMenuScreen;
 import com.example.emotewheel.client.screen.EmoteWheelScreen;
+import com.example.emotewheel.client.screen.MultiClonePanelScreen;
 import com.example.emotewheel.emote.Emote;
 import com.example.emotewheel.emote.Emotes;
 import com.example.emotewheel.net.EmoteBroadcastPayload;
@@ -55,6 +56,11 @@ public class EmoteWheelClient implements ClientModInitializer {
         }
         while (EmoteKeys.MENU.consumeClick()) {
             if (mc.screen == null) mc.setScreen(new EmoteMenuScreen(null, -1));
+        }
+        while (EmoteKeys.CLONE_PANEL.consumeClick()) {
+            if (!EmoteAccess.isOwner()) continue;
+            if (mc.screen instanceof MultiClonePanelScreen) mc.setScreen(null);
+            else if (mc.screen == null) mc.setScreen(new MultiClonePanelScreen());
         }
         while (EmoteKeys.STOP.consumeClick()) {
             EmoteClient.stopLocal();

@@ -11,5 +11,6 @@
   "key.emote_wheel.slot_6": "Quick Emote: Slot 6",
   "key.emote_wheel.slot_7": "Quick Emote: Slot 7",
   "key.emote_wheel.slot_8": "Quick Emote: Slot 8",
-  "key.emote_wheel.repeat": "Replay Last Emote"
+  "key.emote_wheel.repeat": "Replay Last Emote",
+  "key.emote_wheel.clone_panel": "Multi-Shadow Clone Panel (owner)"
 }

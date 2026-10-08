@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * A shadow clone: a client-side-only fake player that copies its owner's position, pose, swings, armor and held items.
- * It has no collision, can't be hit, and is never sent to the server.
+ * No physics collision; can be targeted/punched by real players (client-side poof). Never sent to the server.
  */
 public class CloneEntity extends RemotePlayer {
     private static final EquipmentSlot[] SLOTS = {
@@ -31,7 +31,7 @@ public class CloneEntity extends RemotePlayer {
         this.offZ = offZ;
         this.noPhysics = true;
         this.setNoGravity(true);
-        this.setInvulnerable(true);
+        this.setInvulnerable(false);
         double x = owner.getX() + offX, y = owner.getY(), z = owner.getZ() + offZ;
         this.setPos(x, y, z);
         this.xo = x; this.yo = y; this.zo = z;
@@ -80,7 +80,12 @@ public class CloneEntity extends RemotePlayer {
     @Override
     public PlayerSkin getSkin() { return owner.getSkin(); }
 
-    @Override public boolean isPickable() { return false; }
+    @Override public boolean isPickable() { return true; }  // so left-click can target the clone
     @Override public boolean isPushable() { return false; }
     @Override public boolean shouldShowName() { return false; }
+    @Override public boolean isAttackable() { return true; }
+    @Override public boolean skipAttackInteraction(net.minecraft.world.entity.Entity attacker) {
+        // Handled client-side in CloneManager (poof). Block default interaction.
+        return true;
+    }
 }

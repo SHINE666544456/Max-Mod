@@ -58,12 +58,15 @@ public class EmoteWheelScreen extends Screen {
         drawHub(g, cx, cy);
         drawSlices(g, cx, cy);
         drawTabs(g, cx, cy);
+        // title to match menu branding
+        String title = "IRIS Emote Wheel";
+        g.drawString(font, title, cx - font.width(title) / 2, cy - R_HALO - 18, 0xFFE8C060);
         drawHint(g, cx, cy);
     }
 
     private void drawVignette(GuiGraphics g, int cx, int cy) {
         int s = R_HALO + 28;
-        g.fill(cx - s, cy - s, cx + s, cy + s, 0x66000000);
+        g.fill(cx - s, cy - s, cx + s, cy + s, 0x88000000);
     }
 
     // ---- the disc is the same shape every frame, so its strips are computed once and replayed ----
@@ -71,9 +74,10 @@ public class EmoteWheelScreen extends Screen {
     private static float[] runR;
     private static int runCount;
 
+    // Warm slate / gold wedges — matches Emote Menu palette
     private static final int[][] HUES = {
-        {42, 28, 72}, {28, 36, 78}, {24, 52, 64}, {56, 28, 48},
-        {36, 24, 70}, {22, 44, 72}, {48, 32, 58}, {30, 30, 68}
+        {38, 34, 52}, {48, 40, 56}, {32, 36, 48}, {56, 46, 40},
+        {42, 38, 58}, {36, 42, 50}, {52, 44, 48}, {40, 36, 54}
     };
 
     // per-frame values, computed once in drawDisc instead of once per strip
@@ -127,12 +131,14 @@ public class EmoteWheelScreen extends Screen {
 
     private int colorFor(int sector, double r) {
         if (sector == -3) {
+            // soft gold halo, same accent as menu panels
             float u = (float) ((r - R_OUT) / (double) (R_HALO - R_OUT));
-            int a = (int) (70 * (1f - u));
-            return argb(a, 232, 196, 120);
+            int a = (int) (85 * (1f - u));
+            return argb(a, 232, 192, 96);
         }
         if (sector == -2) {
-            return 0xF2141022;
+            // hub: dark slate like menu BG_PANEL
+            return 0xF012141C;
         }
         boolean hover = sector == hovered;
         boolean filled = sector >= 0 && frameFilled[sector];
@@ -141,25 +147,27 @@ public class EmoteWheelScreen extends Screen {
 
         int cr, cg, cb, a;
         if (hover) {
+            // gold pulse on hover
             a = 0xF0;
-            cr = (int) (70 + 90 * pulse);
-            cg = (int) (90 + 70 * pulse);
-            cb = 255;
+            cr = (int) (180 + 50 * pulse);
+            cg = (int) (150 + 40 * pulse);
+            cb = (int) (70 + 20 * pulse);
         } else if (filled) {
-            a = 0xCC;
-            int[] h = HUES[Math.floorMod(sector, HUES.length)]; // slight hue shift per slice so the pie reads as wedges
+            a = 0xD0;
+            int[] h = HUES[Math.floorMod(sector, HUES.length)];
             cr = h[0]; cg = h[1]; cb = h[2];
         } else {
-            a = 0x99;
-            cr = 16; cg = 14; cb = 24;
+            // empty slice — deep slate
+            a = 0xAA;
+            cr = 18; cg = 20; cb = 28;
         }
         // brighter toward the rim, darker near the hub
-        float boost = 0.72f + u * 0.55f;
+        float boost = 0.75f + u * 0.50f;
         cr = clamp255(cr * boost);
         cg = clamp255(cg * boost);
         cb = clamp255(cb * boost);
-        if (r < R_IN + 3) return argb(Math.min(255, a + 20), cr + 12, cg + 10, cb + 16);
-        if (r > R_OUT - 3 && sector >= 0) return argb(Math.min(255, a + 30), 210, 180, 110);
+        if (r < R_IN + 3) return argb(Math.min(255, a + 20), cr + 10, cg + 10, cb + 14);
+        if (r > R_OUT - 3 && sector >= 0) return argb(Math.min(255, a + 30), 232, 192, 96);
         return argb(a, cr, cg, cb);
     }
 
@@ -181,10 +189,10 @@ public class EmoteWheelScreen extends Screen {
         } else if (playing()) {
             // QoL: while you're emoting the middle of the wheel is a Stop button
             drawCentered(g, "STOP", cx, cy - 8, hubHover ? 0xFFFF9090 : 0xFFE08080, true);
-            drawCentered(g, "click / release", cx, cy + 4, 0xFF8A90B0, false);
+            drawCentered(g, "click / release", cx, cy + 4, 0xFF9AA4C0, false);
         } else {
-            drawCentered(g, "PAGE", cx, cy - 10, 0xFF8A90B0, false);
-            drawCentered(g, String.valueOf(page + 1), cx, cy + 2, 0xFFFFE8A0, true);
+            drawCentered(g, "PAGE", cx, cy - 10, 0xFF9AA4C0, false);
+            drawCentered(g, String.valueOf(page + 1), cx, cy + 2, 0xFFE8C060, true);
         }
     }
 
@@ -199,19 +207,19 @@ public class EmoteWheelScreen extends Screen {
             boolean on = i == hovered;
             if (e != null) {
                 g.renderItem(Icons.of(e), px - 8, py - 18);
-                int nameColor = on ? 0xFFFFF0C0 : 0xFFF4F6FF;
+                int nameColor = on ? 0xFFE8C060 : 0xFFE8ECF4;
                 drawCentered(g, trim(e.name(), on ? 78 : 62), px, py + 2, nameColor, on);
                 if (cfg.isFavorite(e.id())) {
-                    drawCentered(g, "\u2605", px, py + 13, 0xFFFFD060, false);
+                    drawCentered(g, "\u2605", px, py + 13, 0xFFE8C060, false);
                 }
             } else {
-                drawCentered(g, "+", px, py - 6, on ? 0xFFFFE080 : 0xFF6A7088, false);
+                drawCentered(g, "+", px, py - 6, on ? 0xFFE8C060 : 0xFF6A7088, false);
                 drawCentered(g, "empty", px, py + 4, 0xFF5A6078, false);
             }
             // slot index near the rim
             int nx = cx + (int) Math.round(Math.sin(ang) * (R_OUT - 11));
             int ny = cy - (int) Math.round(Math.cos(ang) * (R_OUT - 11));
-            drawCentered(g, String.valueOf(i + 1), nx, ny - 4, on ? 0xFFFFE8A0 : 0x88C8D0E8, false);
+            drawCentered(g, String.valueOf(i + 1), nx, ny - 4, on ? 0xFFE8C060 : 0x88C8D0E8, false);
         }
     }
 
@@ -222,20 +230,29 @@ public class EmoteWheelScreen extends Screen {
         for (int p = 0; p < EmoteConfig.PAGES; p++) {
             int x = x0 + p * (TAB_W + 6);
             boolean on = p == page;
-            g.fill(x, y, x + TAB_W, y + TAB_H, on ? 0xF0E8C070 : 0xC0181428);
+            g.fill(x, y, x + TAB_W, y + TAB_H, on ? 0xF0E8C060 : 0xD012141C);
             g.fill(x, y, x + TAB_W, y + 1, on ? 0xFFFFF0C0 : 0x44FFFFFF);
             g.fill(x, y + TAB_H - 1, x + TAB_W, y + TAB_H, on ? 0xAA806020 : 0x22000000);
-            drawCentered(g, String.valueOf(p + 1), x + TAB_W / 2, y + 4, on ? 0xFF201810 : 0xFFE8ECF8, false);
+            // thin border
+            int border = on ? 0xFFE8C060 : 0xFF3A4258;
+            g.fill(x, y, x + TAB_W, y + 1, border);
+            g.fill(x, y + TAB_H - 1, x + TAB_W, y + TAB_H, border);
+            g.fill(x, y, x + 1, y + TAB_H, border);
+            g.fill(x + TAB_W - 1, y, x + TAB_W, y + TAB_H, border);
+            drawCentered(g, String.valueOf(p + 1), x + TAB_W / 2, y + 4, on ? 0xFF201810 : 0xFFE8ECF4, false);
         }
     }
 
-    private void drawHint(GuiGraphics g, int cx, int cy) {
-        String s = "Release to play   \u2022   Right-click edit   \u2022   Scroll pages   \u2022   E library";
-        int w = font.width(s) + 16;
+        private void drawHint(GuiGraphics g, int cx, int cy) {
+        String s = "Release to play   •   Right-click edit   •   Scroll pages   •   E library";
+        int bw = font.width(s) + 20;
         int y = cy + R_OUT + 16;
-        int x0 = cx - w / 2;
-        g.fill(x0, y - 3, x0 + w, y + 12, 0xAA100C18);
-        drawCentered(g, s, cx, y, 0xFFC8D0E8, false);
+        int x0 = cx - bw / 2;
+        // match menu panel chrome
+        g.fill(x0, y - 4, x0 + bw, y + 13, 0xD012141C);
+        g.fill(x0, y - 4, x0 + bw, y - 3, 0xFFE8C060);
+        g.fill(x0, y + 12, x0 + bw, y + 13, 0xFF3A4258);
+        drawCentered(g, s, cx, y, 0xFF9AA4C0, false);
     }
 
     /** -3 halo, -2 hub, -1 gap, else slice index. */
