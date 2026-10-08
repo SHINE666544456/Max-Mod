@@ -1,6 +1,0 @@
-{
-  "layers": {
-    "humanoid":          [ { "texture": "emote_wheel:maid_pink" } ],
-    "humanoid_leggings": [ { "texture": "emote_wheel:maid_pink" } ]
-  }
-}
