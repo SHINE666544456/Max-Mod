@@ -81,15 +81,16 @@ public final class LookTextures {
      */
     private static NativeImage paint(int outer, int inner, int tail) {
         NativeImage img = new NativeImage(64, 64, false);
-        int dark = shade(outer, 0.55f);
-        int light = shade(outer, 1.45f);
-        int tailDark = shade(tail, 0.62f);
-        int tailLight = shade(tail, 1.38f);
-        int tailMid = mix(tail, outer, 0.35f);
+        // Softer shading so fur reads as smooth, not banded
+        int dark = shade(outer, 0.78f);
+        int light = shade(outer, 1.18f);
+        int tailDark = shade(tail, 0.80f);
+        int tailLight = shade(tail, 1.16f);
+        int tailMid = mix(tail, outer, 0.25f);
         fill(img, 0, 0, 16, 16, outer, dark, light);          // fur
-        fill(img, 16, 0, 16, 16, inner, shade(inner, 0.75f), shade(inner, 1.2f));
-        fill(img, 32, 0, 16, 16, light, outer, shade(light, 1.15f)); // belly
-        fill(img, 48, 0, 16, 16, dark, shade(dark, 0.8f), outer);
+        fill(img, 16, 0, 16, 16, inner, shade(inner, 0.88f), shade(inner, 1.10f));
+        fill(img, 32, 0, 16, 16, light, outer, shade(light, 1.08f)); // belly
+        fill(img, 48, 0, 16, 16, dark, shade(dark, 0.90f), outer);
         fill(img, 0, 16, 16, 16, tailMid, tailDark, tailLight);     // tail surround
         // open eyes: pale with dark pupil
         fill(img, 16, 16, 16, 16, 0xF2E8D8, 0xF2E8D8, 0xF2E8D8);
@@ -101,7 +102,7 @@ public final class LookTextures {
             img.setPixel(x, 23, abgr(0x1A1210));
             img.setPixel(x, 24, abgr(0x1A1210));
         }
-        fill(img, 48, 16, 16, 16, shade(inner, 0.55f), 0x3A1020, shade(inner, 0.8f)); // pads
+        fill(img, 48, 16, 16, 16, shade(inner, 0.70f), 0x3A1020, shade(inner, 0.88f)); // pads
         return img;
     }
 
@@ -109,10 +110,11 @@ public final class LookTextures {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 int n = (x * 13 + y * 31) & 7;
-                int c = n < 2 ? dark : n > 5 ? light : base;
-                // slight vertical gradient so tails read as round
+                // Milder noise: fewer extreme pixels
+                int c = n < 1 ? dark : n > 6 ? light : base;
+                // gentler vertical falloff
                 float v = y / (float) Math.max(1, h - 1);
-                c = mix(c, dark, v * 0.25f);
+                c = mix(c, dark, v * 0.12f);
                 img.setPixel(x0 + x, y0 + y, abgr(c | 0xFF000000));
             }
         }

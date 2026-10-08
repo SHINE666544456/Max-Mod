@@ -139,7 +139,7 @@ public final class LookParts {
         paw.xRot = -1.9f * wash;
         head.xRot += 0.35f * wash;
 
-        pet.y = (laying ? -7.2f : -8f) - (excited ? Math.abs((float) Math.sin(now * 7f)) * 0.6f : 0f);
+        pet.y = (laying ? -6.5f : -7.2f) - (excited ? Math.abs((float) Math.sin(now * 7f)) * 0.6f : 0f);
         pet.xRot = (laying ? 0.55f : 0f) + 0.35f * st; // front dips for the stretch
     }
 }

@@ -21,6 +21,20 @@ public class EmoteSettingsScreen extends Screen {
     private static final String[] TAILS = { "Off", "Cat", "Fox", "Bunny" };
     private static final String[] PETS = { "Off", "Kitten", "Fox kit", "Bunny" };
 
+    /** Mob-inspired colour presets: name, outer, inner, tail */
+    private static final String[][] PRESETS = {
+        { "Tabby",      "C47A2A", "F5C6A0", "C47A2A" },
+        { "Black cat",  "1A1A1A", "3A3A3A", "1A1A1A" },
+        { "White cat",  "E8E8E8", "F5D0D8", "E8E8E8" },
+        { "Fox",        "D57E36", "E8B090", "E8DCC8" },
+        { "Wolf",       "C8C0B0", "E8E0D0", "A09080" },
+        { "Rabbit",     "9A6B4A", "E8C8A0", "9A6B4A" },
+        { "Polar bear", "F0F0F0", "E8E8F0", "E0E0E0" },
+        { "Ocelot",     "C9A66B", "F0D8A8", "C9A66B" },
+        { "Mooshroom",  "A03020", "E08070", "803020" },
+        { "Default",    "2C1A12", "E8A0B0", "2C1A12" },
+    };
+
     private record Opt(Supplier<String> label, Runnable action) {}
 
     private final Screen parent;
@@ -76,8 +90,23 @@ public class EmoteSettingsScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("Save colours"), b -> saveColours())
             .bounds(x1, hy + 24, colW, 20).build());
 
+        // Mob colour presets (two rows)
+        int py = hy + 50;
+        int presetW = 72, presetGap = 4;
+        int totalW = PRESETS.length / 2 * (presetW + presetGap) - presetGap;
+        int px0 = width / 2 - totalW / 2;
+        for (int i = 0; i < PRESETS.length; i++) {
+            final String[] p = PRESETS[i];
+            int row = i / 5, col = i % 5;
+            int px = px0 + col * (presetW + presetGap);
+            int pyy = py + row * 22;
+            addRenderableWidget(Button.builder(Component.literal(p[0]), b -> applyPreset(p))
+                .bounds(px, pyy, presetW, 20).build());
+        }
+
+        int doneY = Math.min(height - 28, py + 50);
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
-            .bounds(width / 2 - 60, Math.min(height - 28, hy + 56), 120, 20).build());
+            .bounds(width / 2 - 60, doneY, 120, 20).build());
     }
 
     private EditBox hexField(int x, int y, int w, String value) {
@@ -85,6 +114,14 @@ public class EmoteSettingsScreen extends Screen {
         box.setMaxLength(7);
         box.setValue(value == null ? "" : value);
         return box;
+    }
+
+    private void applyPreset(String[] p) {
+        outerBox.setValue(p[1]);
+        innerBox.setValue(p[2]);
+        tailBox.setValue(p[3]);
+        saveColours();
+        colourStatus = "Preset: " + p[0];
     }
 
     private void saveColours() {
@@ -130,11 +167,12 @@ public class EmoteSettingsScreen extends Screen {
             g.fill(x1 - 16, hy, x1 - 4, hy + 18, ic);
             g.fill(x0 - 16, hy + 24, x0 - 4, hy + 42, tc);
         }
+        g.drawString(font, "Colour presets (mob-inspired)", width / 2 - font.width("Colour presets (mob-inspired)") / 2, hy + 52, 0xFF9AA4C0);
         if (!colourStatus.isEmpty()) {
-            g.drawString(font, colourStatus, width / 2 - font.width(colourStatus) / 2, hy + 50, 0xFFA0E8B0);
+            g.drawString(font, colourStatus, width / 2 - font.width(colourStatus) / 2, hy + 98, 0xFFA0E8B0);
         }
         String tip = "Pet uses its own fur atlas (not your hair). It lays down and sleeps on its own.";
-        g.drawString(font, tip, width / 2 - font.width(tip) / 2, Math.min(height - 42, hy + 64), 0xFF9AA4C0);
+        g.drawString(font, tip, width / 2 - font.width(tip) / 2, Math.min(height - 42, hy + 112), 0xFF9AA4C0);
     }
 
     @Override
