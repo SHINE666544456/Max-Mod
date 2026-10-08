@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "com.example.emotewheel.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "AbstractClientPlayerMixin",
+    "HumanoidModelMixin",
+    "ItemStackMixin",
+    "LivingEntityRenderStateMixin",
+    "LivingEntityRendererMixin",
+    "PlayerModelMixin"
+  ],
+  "injectors": { "defaultRequire": 1 }
+}
