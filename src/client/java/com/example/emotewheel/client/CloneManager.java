@@ -96,27 +96,29 @@ public final class CloneManager {
      */
     /**
      * Random scatter in a tight cluster around the owner.
-     * - No empty ring around the player (can spawn right next to them).
-     * - Soft minimum spacing between clones so they don't fully overlap.
-     * - Not a neat circle and not pushed far away as count grows.
+     * - Keep a small clear zone around the player so clones don't overlap them.
+     * - Soft minimum spacing between clones so they don't fully overlap each other.
+     * - Random positions (not a neat ring), pack stays close.
      */
     private static List<CloneEntity> spawn(ClientLevel level, AbstractClientPlayer owner, int count) {
         java.util.concurrent.ThreadLocalRandom rnd = java.util.concurrent.ThreadLocalRandom.current();
-        // Compact area: grows gently so packs stay near you and hard to tell who is real
-        double areaR = count <= 1 ? 1.6
-            : count <= 4 ? 2.4
-            : Math.min(3.8, 2.0 + Math.sqrt(count) * 0.35);
-        double minSep = 0.72; // ~player width-ish; close but not overlapping
+        double minFromPlayer = 1.05; // don't sit on top of the real player
+        double areaR = count <= 1 ? 2.0
+            : count <= 4 ? 2.6
+            : Math.min(4.0, 2.2 + Math.sqrt(count) * 0.35);
+        double minSep = 0.72; // between clones
 
         List<double[]> placed = new ArrayList<>();
         List<CloneEntity> list = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             double ox = 0, oz = 0;
             boolean ok = false;
-            for (int tries = 0; tries < 40; tries++) {
+            for (int tries = 0; tries < 48; tries++) {
                 double x = (rnd.nextDouble() * 2 - 1) * areaR;
                 double z = (rnd.nextDouble() * 2 - 1) * areaR;
-                if (x * x + z * z > areaR * areaR) continue; // stay in disc
+                double len2 = x * x + z * z;
+                if (len2 > areaR * areaR) continue;
+                if (len2 < minFromPlayer * minFromPlayer) continue; // clear of player
                 boolean farEnough = true;
                 for (double[] p : placed) {
                     double dx = x - p[0], dz = z - p[1];
@@ -129,9 +131,9 @@ public final class CloneManager {
                 }
             }
             if (!ok) {
-                // relax spacing: just random in disc
+                // fallback: random angle outside player clear zone
                 double ang = rnd.nextDouble() * Math.PI * 2;
-                double rad = rnd.nextDouble() * areaR;
+                double rad = minFromPlayer + rnd.nextDouble() * Math.max(0.2, areaR - minFromPlayer);
                 ox = Math.cos(ang) * rad;
                 oz = Math.sin(ang) * rad;
             }
