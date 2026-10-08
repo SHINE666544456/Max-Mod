@@ -84,40 +84,38 @@ public final class CloneManager {
     /**
      * The group's centre is placed to a random side of you (never on you), and the clones are scattered around that centre.
      */
+    /**
+     * Scatter clones randomly near the owner — not in a neat ring, and not pushed farther away
+     * just because there are more of them. Slight extra room at high counts so they don't stack.
+     */
     private static List<CloneEntity> spawn(ClientLevel level, AbstractClientPlayer owner, int count) {
         java.util.concurrent.ThreadLocalRandom rnd = java.util.concurrent.ThreadLocalRandom.current();
-
-        // Spread scales with count so multi-shadow armies fan out instead of stacking on you.
-        // ~2.5 blocks for a few clones; grows with sqrt(count) so dozens fill a wider ring.
-        double spread = count <= 1 ? 1.5
-            : count <= 3 ? 2.5
-            : 2.0 + Math.sqrt(count) * 1.15;          // e.g. 8→~5.3, 20→~7.1, 50→~10.1
-        double ringInner = Math.max(1.4, spread * 0.45);
-        double ringOuter = spread;
+        // Stay close to the player. Max radius grows only a little with count (log), never a huge ring.
+        double minR = 1.15;
+        double maxR = count <= 1 ? 2.2
+            : count <= 3 ? 3.2
+            : Math.min(5.0, 3.0 + Math.log(count) * 0.55);
 
         List<CloneEntity> list = new ArrayList<>();
-        double offset = rnd.nextDouble() * Math.PI * 2;
         for (int i = 0; i < count; i++) {
-            double ox, oz;
-            if (count == 1) {
-                double dir = rnd.nextDouble() * Math.PI * 2;
-                double d = 1.4 + rnd.nextDouble() * 0.8;
-                ox = Math.cos(dir) * d;
-                oz = Math.sin(dir) * d;
-            } else {
-                // Evenly around a ring, with jitter; larger counts use a thicker annulus
-                double ang = offset + i * (Math.PI * 2 / count) + (rnd.nextDouble() - 0.5) * (0.35 + 0.15 / Math.sqrt(count));
-                double t = count <= 4 ? 0.5 : rnd.nextDouble(); // fill the ring depth for big groups
-                double rad = ringInner + (ringOuter - ringInner) * t;
-                rad += (rnd.nextDouble() - 0.5) * 0.6;
-                ox = Math.cos(ang) * rad;
-                oz = Math.sin(ang) * rad;
-            }
-            double len = Math.hypot(ox, oz);
-            if (len < 1.2) {
-                double s = 1.2 / Math.max(len, 0.01);
-                ox *= s;
-                oz *= s;
+            double ox = 0, oz = 0;
+            // Rejection sample in a disc so placement is random, not evenly spaced on a circle
+            for (int tries = 0; tries < 24; tries++) {
+                double x = (rnd.nextDouble() * 2 - 1) * maxR;
+                double z = (rnd.nextDouble() * 2 - 1) * maxR;
+                double len = Math.hypot(x, z);
+                if (len >= minR && len <= maxR) {
+                    ox = x;
+                    oz = z;
+                    break;
+                }
+                if (tries == 23) {
+                    // fallback: random angle at mid radius
+                    double ang = rnd.nextDouble() * Math.PI * 2;
+                    double rad = minR + rnd.nextDouble() * (maxR - minR);
+                    ox = Math.cos(ang) * rad;
+                    oz = Math.sin(ang) * rad;
+                }
             }
             CloneEntity c = new CloneEntity(level, owner, ox, oz);
             c.setId(nextFakeId--);
