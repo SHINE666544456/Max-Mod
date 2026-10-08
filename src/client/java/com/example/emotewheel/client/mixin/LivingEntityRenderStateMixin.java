@@ -22,6 +22,9 @@ public abstract class LivingEntityRenderStateMixin implements EmoteStateHolder {
     @Override public void emotes$setCat(int ears, int tail) { this.emotes$ears = ears; this.emotes$tail = tail; }
     @Override public void emotes$setExtras(BlockState disguise, int pet) { this.emotes$disguise = disguise; this.emotes$pet = pet; }
     @Override public void emotes$setSelf(boolean self) { this.emotes$self = self; }
+    @Unique private float[] emotes$rig;
+    @Override public void emotes$setRig(float[] rig) { this.emotes$rig = rig; }
+    @Override public float[] emotes$rig() { return this.emotes$rig; }
     @Override public Emote emotes$getEmote() { return this.emotes$emote; }
     @Override public float emotes$getTime() { return this.emotes$time; }
     @Override public int emotes$earStyle() { return this.emotes$ears; }

@@ -19,4 +19,7 @@ public interface EmoteStateHolder {
     BlockState emotes$disguise();
     int emotes$pet();
     boolean emotes$isSelf();
+    /** Where the root/head/body are this frame (see Rig), so separately-drawn extras can follow them. */
+    void emotes$setRig(float[] rig);
+    float[] emotes$rig();
 }

@@ -17,6 +17,10 @@ import com.example.emotewheel.client.EmoteStateHolder;
 import com.example.emotewheel.client.LookParts;
 import com.example.emotewheel.client.MaidUtil;
 import com.example.emotewheel.emote.Emote;
+import com.example.emotewheel.emote.Flavor;
+import com.example.emotewheel.emote.Pose;
+import com.example.emotewheel.emote.Rig;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
@@ -45,7 +49,8 @@ import net.minecraft.world.level.block.state.BlockState;
 @Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin {
 
-    @org.spongepowered.asm.mixin.Shadow public abstract EntityModel<?> getModel();
+    private static final Pose RIG_POSE = new Pose();
+
 
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V",
             at = @At("RETURN"))
@@ -76,6 +81,20 @@ public abstract class LivingEntityRendererMixin {
             if (emote != null) time = EmoteClient.time(source);
         }
         holder.emotes$set(emote, time);
+
+        // where the head/body/root are this frame, so the separately-drawn ears/tail/pet can follow them
+        RIG_POSE.reset();
+        float rigW = 0f;
+        boolean rigWalk = false;
+        if (emote != null) {
+            emote.fn().apply(RIG_POSE, time);
+            Flavor.apply(RIG_POSE, emote, time);
+            rigW = Rig.weight(emote, RIG_POSE, time);
+            rigWalk = emote.isWalk();
+        }
+        boolean crouch = state instanceof HumanoidRenderState hs && hs.isCrouching;
+        holder.emotes$setRig(Rig.compute(RIG_POSE, rigW, rigWalk,
+            state.yRot * ((float) Math.PI / 180f), state.xRot * ((float) Math.PI / 180f), crouch));
 
         // cat ears + tail on the body (the maid helmet brings its own ears, so skip ours then)
         boolean enabled = emote != null && emote.isCat();
@@ -122,11 +141,7 @@ public abstract class LivingEntityRendererMixin {
         if (!(state instanceof EmoteStateHolder h)) return;
         Emote e = h.emotes$getEmote();
         if (e != null && EmoteProps.has(e)) EmoteProps.submit(e, h.emotes$getTime(), state.bodyRot, poseStack, collector);
-        EntityModel<?> model = getModel();
-        if (model instanceof PlayerModel pm && (h.emotes$earStyle() > 0 || h.emotes$tailStyle() > 0 || h.emotes$pet() > 0)) {
-            LookParts.submit(pm, state, poseStack, collector, LookParts.textureFor(h.emotes$isSelf()),
-                h.emotes$earStyle(), h.emotes$tailStyle(), h.emotes$pet());
-        }
+        LookParts.submit(h, state, poseStack, collector); // ears, tail, pet
     }
 
     /** Stealth: no nametag floating over the owner (this is what gives the real one away among shadow clones). */

@@ -105,3 +105,11 @@ See `Pose.java` for every field (arms, legs, head, body, `lean`, and whole-body 
 ## Extras
 - `optional_icon_pack/` : an optional resource pack that gives Hinata armor its own inventory icons.
 - `tools/` : the Python scripts that generate the armor textures.
+
+
+## 2.3.1: fixes to the ears / tail / pet
+- **They now actually draw.** The game draws model parts in a second pass, after your code has run; the old version switched each part's visibility off again before that pass, and also read the head position from the previous frame (and from a model shared by every player). The ears, tail and pet now live in their own always-visible model and are placed from the exact head/body pose (including nods, head tilts, leaning, flips and spins), so they stick to you.
+- **Build fixes:** `PlayerModel` is not generic in 1.21.11, the render-type helpers moved to `RenderTypes`, and `NativeImage` lives in `com.mojang.blaze3d.platform`.
+- **Colours:** the fur atlas is written in ARGB (1.21.2+). If your hex colours ever come out with red and blue swapped (orange looks blue), set `SWAP_RED_BLUE = true` in `LookTextures.java`.
+- **Pet:** blinks every few seconds, and its day is now sit, look around, paw wash, stretch, yawn, lie down, sleep (eyes shut), on a 22-second loop. It gets excited and hops when you emote.
+- **Piglins** still have their cat ears and tail on purpose (see `PlayerModelMixin`).

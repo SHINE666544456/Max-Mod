@@ -22,6 +22,11 @@ public final class LookTextures {
     private static DynamicTexture custom, fallback;
     private static int builtOuter = -1, builtInner = -1, builtTail = -1;
 
+    public static void init() {
+        fallback = upload(DEFAULT_ID, OUTER, INNER, TAIL);
+        rebuild();
+    }
+
     public static Identifier self() {
         rebuild();
         return ID;
@@ -30,9 +35,6 @@ public final class LookTextures {
     public static Identifier others() { return DEFAULT_ID; }
 
     public static void rebuild() {
-        // DynamicTexture needs the render device, so create textures lazily on first render/use.
-        if (fallback == null) fallback = upload(DEFAULT_ID, OUTER, INNER, TAIL);
-
         EmoteConfig c = EmoteConfig.get();
         int o = parse(c.earOuter, OUTER);
         int i = parse(c.earInner, INNER);
@@ -63,7 +65,7 @@ public final class LookTextures {
 
     private static DynamicTexture upload(Identifier id, int outer, int inner, int tail) {
         NativeImage img = paint(outer, inner, tail);
-        DynamicTexture tex = new DynamicTexture(() -> null, img);
+        DynamicTexture tex = new DynamicTexture(() -> "emote_wheel_look", img);
         Minecraft.getInstance().getTextureManager().register(id, tex);
         return tex;
     }
@@ -137,10 +139,16 @@ public final class LookTextures {
 
     private static int clamp(int v) { return v < 0 ? 0 : Math.min(255, v); }
 
-    /** NativeImage pixels are ABGR. */
+    /**
+     * If your ear/tail colours ever show up with red and blue swapped (orange looks blue), flip this to true.
+     * (NativeImage takes ARGB colours in 1.21.2+.)
+     */
+    private static final boolean SWAP_RED_BLUE = false;
+
     private static int abgr(int argbOrRgb) {
         int a = (argbOrRgb >>> 24) == 0 ? 0xFF : (argbOrRgb >>> 24);
         int r = (argbOrRgb >> 16) & 255, g = (argbOrRgb >> 8) & 255, b = argbOrRgb & 255;
-        return (a << 24) | (b << 16) | (g << 8) | r;
+        if (SWAP_RED_BLUE) { int t = r; r = b; b = t; }
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 }
