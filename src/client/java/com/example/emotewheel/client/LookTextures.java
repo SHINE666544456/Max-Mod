@@ -21,20 +21,24 @@ public final class LookTextures {
 
     private static DynamicTexture custom, fallback;
     private static int builtOuter = -1, builtInner = -1, builtTail = -1;
+    private static boolean ready;
 
     public static void init() {
+        if (ready) return;
         fallback = upload(DEFAULT_ID, OUTER, INNER, TAIL);
+        ready = true;
         rebuild();
     }
 
     public static Identifier self() {
-        rebuild();
+        if (ready) rebuild();
         return ID;
     }
 
     public static Identifier others() { return DEFAULT_ID; }
 
     public static void rebuild() {
+        if (!ready) return;
         EmoteConfig c = EmoteConfig.get();
         int o = parse(c.earOuter, OUTER);
         int i = parse(c.earInner, INNER);

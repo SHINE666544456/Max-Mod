@@ -8,6 +8,7 @@ import com.example.emotewheel.net.EmoteBroadcastPayload;
 import com.example.emotewheel.net.StateBroadcastPayload;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -19,7 +20,9 @@ public class EmoteWheelClient implements ClientModInitializer {
     public void onInitializeClient() {
         EmoteKeys.register();
         EmoteConfig.get();
-        LookTextures.init();
+        // DynamicTexture / RenderSystem.getDevice() is not available yet during
+        // ClientModInitializer. Defer until the client has fully started.
+        ClientLifecycleEvents.CLIENT_STARTED.register(client -> LookTextures.init());
 
         ClientPlayNetworking.registerGlobalReceiver(EmoteBroadcastPayload.TYPE, (payload, context) ->
             context.client().execute(() -> EmoteClient.onRemote(payload.player(), payload.emoteId())));
