@@ -41,7 +41,10 @@ public class EmoteSettingsScreen extends Screen {
     private final List<Opt> opts = new ArrayList<>();
     private final List<Button> buttons = new ArrayList<>();
     private EditBox outerBox, innerBox, tailBox;
+    private EditBox cloneCountBox;
     private String colourStatus = "";
+    private String cloneStatus = "";
+    private int cloneRowY;
 
     public EmoteSettingsScreen(Screen parent) {
         super(Component.literal("Emote Settings"));
@@ -63,10 +66,6 @@ public class EmoteSettingsScreen extends Screen {
         opts.add(new Opt(() -> "Ears: " + EARS[c.earStyle], () -> c.earStyle = (c.earStyle + 1) % EARS.length));
         opts.add(new Opt(() -> "Tail: " + TAILS[c.tailStyle], () -> c.tailStyle = (c.tailStyle + 1) % TAILS.length));
         opts.add(new Opt(() -> "Pet on my head: " + PETS[c.pet], () -> c.pet = (c.pet + 1) % PETS.length));
-        opts.add(new Opt(() -> "Multi-Shadow clones: " + c.multiCloneCount + " (click +1)", () -> {
-            // No hard cap. Click adds 1. Edit config/emote_wheel.json for huge values; very high counts will lag.
-            c.multiCloneCount = c.multiCloneCount + 1;
-        }));
 
         int colW = 190, gap = 6, rowH = 24;
         int x0 = width / 2 - colW - gap / 2, x1 = width / 2 + gap / 2;
@@ -83,7 +82,30 @@ public class EmoteSettingsScreen extends Screen {
             addRenderableWidget(b);
         }
 
-        int hy = y0 + (opts.size() / 2) * rowH + 28;
+        // ---- Multi-Shadow clone count (easy controls) ----
+        int cy = y0 + ((opts.size() + 1) / 2) * rowH + 8;
+        cloneRowY = cy;
+        int cx = width / 2;
+        // number box in the middle
+        cloneCountBox = new EditBox(font, cx - 28, cy, 56, 18, Component.literal("clones"));
+        cloneCountBox.setMaxLength(6);
+        cloneCountBox.setValue(String.valueOf(c.multiCloneCount));
+        cloneCountBox.setFilter(s -> s.isEmpty() || s.chars().allMatch(Character::isDigit));
+        addRenderableWidget(cloneCountBox);
+
+        addRenderableWidget(Button.builder(Component.literal("-10"), b -> nudgeClones(-10))
+            .bounds(cx - 140, cy - 1, 40, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("-1"), b -> nudgeClones(-1))
+            .bounds(cx - 96, cy - 1, 36, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("+1"), b -> nudgeClones(1))
+            .bounds(cx + 32, cy - 1, 36, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("+10"), b -> nudgeClones(10))
+            .bounds(cx + 72, cy - 1, 40, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("Apply"), b -> applyCloneCount())
+            .bounds(cx + 116, cy - 1, 50, 20).build());
+
+        // ---- Colours ----
+        int hy = cy + 36;
         int fieldW = 88;
         outerBox = hexField(x0 + 92, hy, fieldW, c.earOuter);
         innerBox = hexField(x1 + 92, hy, fieldW, c.earInner);
@@ -97,7 +119,7 @@ public class EmoteSettingsScreen extends Screen {
         // Mob colour presets (two rows)
         int py = hy + 50;
         int presetW = 72, presetGap = 4;
-        int totalW = PRESETS.length / 2 * (presetW + presetGap) - presetGap;
+        int totalW = 5 * (presetW + presetGap) - presetGap;
         int px0 = width / 2 - totalW / 2;
         for (int i = 0; i < PRESETS.length; i++) {
             final String[] p = PRESETS[i];
@@ -111,6 +133,35 @@ public class EmoteSettingsScreen extends Screen {
         int doneY = Math.min(height - 28, py + 50);
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
             .bounds(width / 2 - 60, doneY, 120, 20).build());
+    }
+
+    private void nudgeClones(int delta) {
+        EmoteConfig c = EmoteConfig.get();
+        int n = Math.max(1, c.multiCloneCount + delta);
+        c.multiCloneCount = n;
+        c.save();
+        if (cloneCountBox != null) cloneCountBox.setValue(String.valueOf(n));
+        cloneStatus = "Multi-Shadow clones set to " + n + " (re-cast jutsu if already active)";
+    }
+
+    private void applyCloneCount() {
+        EmoteConfig c = EmoteConfig.get();
+        String raw = cloneCountBox == null ? "" : cloneCountBox.getValue().trim();
+        int n;
+        try {
+            n = Integer.parseInt(raw);
+        } catch (NumberFormatException e) {
+            cloneStatus = "Type a whole number (e.g. 8 or 50)";
+            return;
+        }
+        if (n < 1) {
+            cloneStatus = "Must be at least 1";
+            return;
+        }
+        c.multiCloneCount = n;
+        c.save();
+        cloneCountBox.setValue(String.valueOf(n));
+        cloneStatus = "Multi-Shadow clones set to " + n + " (re-cast jutsu if already active)";
     }
 
     private EditBox hexField(int x, int y, int w, String value) {
@@ -157,9 +208,17 @@ public class EmoteSettingsScreen extends Screen {
         super.render(g, mouseX, mouseY, delta);
         String title = "Emote Settings";
         g.drawString(font, title, width / 2 - font.width(title) / 2, 14, 0xFFFFFFFF);
+
+        // Multi-Shadow label
+        String cloneLabel = "Multi-Shadow Clone count:";
+        g.drawString(font, cloneLabel, width / 2 - font.width(cloneLabel) / 2, cloneRowY - 12, 0xFFE8D090);
+        if (!cloneStatus.isEmpty()) {
+            g.drawString(font, cloneStatus, width / 2 - font.width(cloneStatus) / 2, cloneRowY + 22, 0xFFA0E8B0);
+        }
+
         int colW = 190, gap = 6;
         int x0 = width / 2 - colW - gap / 2, x1 = width / 2 + gap / 2;
-        int hy = 36 + (opts.size() / 2) * 24 + 28;
+        int hy = cloneRowY + 36;
         g.drawString(font, "Ear outer #", x0, hy + 5, 0xFFC8D0E8);
         g.drawString(font, "Ear inner #", x1, hy + 5, 0xFFC8D0E8);
         g.drawString(font, "Tail #", x0, hy + 29, 0xFFC8D0E8);
@@ -175,12 +234,22 @@ public class EmoteSettingsScreen extends Screen {
         if (!colourStatus.isEmpty()) {
             g.drawString(font, colourStatus, width / 2 - font.width(colourStatus) / 2, hy + 98, 0xFFA0E8B0);
         }
-        String tip = "Pet uses its own fur atlas (not your hair). It lays down and sleeps on its own.";
+        String tip = "Type a number or use +/- then Apply. Re-cast Multi-Shadow Clone to respawn.";
         g.drawString(font, tip, width / 2 - font.width(tip) / 2, Math.min(height - 42, hy + 112), 0xFF9AA4C0);
     }
 
     @Override
     public void onClose() {
+        // Save typed clone count if they typed but forgot Apply
+        if (cloneCountBox != null) {
+            try {
+                int n = Integer.parseInt(cloneCountBox.getValue().trim());
+                if (n >= 1) {
+                    EmoteConfig c = EmoteConfig.get();
+                    c.multiCloneCount = n;
+                }
+            } catch (NumberFormatException ignored) {}
+        }
         EmoteConfig.get().save();
         minecraft.setScreen(parent);
     }
