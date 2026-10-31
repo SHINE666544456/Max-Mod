@@ -1,0 +1,55 @@
+// The emote wheel + armor mod. It is written against Mojang's official names, so it is its own
+// subproject (the root mod uses Yarn names). The root build nests this jar inside the final jar.
+plugins {
+	id 'fabric-loom'
+}
+
+version = rootProject.property('emote_wheel_version')
+
+base {
+	archivesName = 'emote-wheel'
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"emote_wheel" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings loom.officialMojangMappings()
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+processResources {
+	def modVersion = project.version
+	inputs.property "version", modVersion
+
+	filesMatching("fabric.mod.json") {
+		expand "version": modVersion
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+	it.options.release = 21
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_emote_wheel" }
+	}
+}

@@ -9,5 +9,7 @@ pluginManagement {
 	}
 }
 
-// Should match your modid
-rootProject.name = 'emote_wheel'
+rootProject.name = 'iris-overrides-tweaks-emote-wheel-and-armor'
+
+// the emote wheel + armor mod
+include 'emote-wheel'
