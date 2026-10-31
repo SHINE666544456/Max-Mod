@@ -1,0 +1,21 @@
+{
+  "key.skinoverride.open": "Open IRIS'S Overrides and Tweaks skin screen",
+  "key.skinoverride.settings": "Open IRIS'S Overrides and Tweaks settings",
+  "key.skinoverride.zoom": "Zoom (hold)",
+  "key.skinoverride.fullbright": "Toggle fullbright",
+  "key.skinoverride.cleanshot": "Clean screenshot (no HUD)",
+  "key.skinoverride.freecam": "Toggle freecam",
+  "key.skinoverride.light": "Toggle light level overlay",
+  "key.skinoverride.map": "Open full map",
+  "key.skinoverride.waypoint": "Add waypoint here",
+  "key.skinoverride.mapzoomin": "Minimap zoom in",
+  "key.skinoverride.mapzoomout": "Minimap zoom out",
+  "key.skinoverride.sort": "Sort container / inventory",
+  "key.skinoverride.acceptwp": "Save the newest shared waypoint",
+  "key.skinoverride.sharepos": "Send my position to chat as a waypoint",
+  "key.skinoverride.chatsearch": "Search chat history",
+  "key.skinoverride.cave": "Cycle cave map (off / auto / always)",
+  "key.skinoverride.radar": "Toggle entity radar",
+  "key.skinoverride.reroll": "Villager reroller: open setup / stop",
+  "key.skinoverride.hudtoggle": "Hide / show all IRIS HUD panels"
+}

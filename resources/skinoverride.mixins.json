@@ -1,0 +1,26 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.skinoverride.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "AbstractClientPlayerEntityMixin",
+    "PlayerListEntryMixin",
+    "LivingEntityRendererMixin",
+    "CameraAccessor",
+    "SimpleOptionAccessor",
+    "ChatHudMixin",
+    "GameRendererMixin",
+    "MouseMixin",
+    "CameraMixin",
+    "EntityMixin",
+    "EntityRendererMixin",
+    "OverlayTextureAccessor",
+    "InGameOverlayRendererMixin",
+    "HandledScreenAccessor",
+    "MinecraftClientMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

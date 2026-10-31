@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "skinoverride",
+  "version": "${version}",
+  "name": "Iris's Overrides, Tweaks, Emote wheel and armor",
+  "description": "Everything in one mod: client-side skin overrides, a movable HUD (armor, effects, minimap, keystrokes, clock...), map and waypoints, chat colors / emotes / heads, freecam, chest sorter, Weapon Master, profiles, capes, a villager trade reroller and more, plus the Emote Wheel with 310+ emotes and the Hinata / maid armor outfits (nested inside this jar). Install it on the server too if you want other players to see your emotes.",
+  "authors": [
+    "Iris"
+  ],
+  "license": "GPL-3.0-only",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "dev.skinoverride.SkinOverrideClient"
+    ],
+    "main": [
+      "dev.skinoverride.net.SyncNet"
+    ]
+  },
+  "mixins": [
+    {
+      "config": "skinoverride.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
